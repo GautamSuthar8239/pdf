@@ -11,17 +11,23 @@
             </a>
         </div>
 
+        <div class="animated-banner">
+            <span id="bannerText"></span>
+        </div>
+
         <!-- Right-side Menu -->
         <div class="d-flex align-items-center gap-2">
             <ul class="navbar-nav d-flex flex-row align-items-center gap-2 mb-0">
-
-                <!-- Sidebar Toggler (Mobile Only) -->
-               
 
                 <!-- Settings -->
                 <li class="nav-item">
                     <a href="/setDemoToast/setting" class="nav-link text-dark p-1 d-flex align-items-center nav-hover">
                         <i class="material-symbols-rounded">settings</i>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a href="/headline" class="nav-link text-dark p-1 d-flex align-items-center nav-hover">
+                        <i class="material-symbols-rounded">newsmode</i>
                     </a>
                 </li>
 
@@ -34,7 +40,7 @@
                     <ul class="dropdown-menu dropdown-menu-end px-1 shadow-sm border-1 border-secondary"
                         aria-labelledby="dropdownMenuButton">
                         <li>
-                            <a href="/setDemoToast" class="dropdown-item border-radius-md d-flex align-items-center gap-2">
+                            <a href="/setDemoToast/notify" class="dropdown-item border-radius-md d-flex align-items-center gap-2">
                                 <i class="material-symbols-rounded text-orange">pin</i> Demo notification
                             </a>
                         </li>
@@ -44,7 +50,7 @@
                 <!-- Simple User Menu -->
                 <li class="nav-item dropdown">
                     <a href="#" id="dropdownInfoButton" data-bs-toggle="dropdown" aria-expanded="false"
-                        class="nav-link d-flex align-items-center px-3 py-1 btn-sm rounded-2 bg-warning gap-2 mb-0">
+                        class="nav-link d-flex align-items-center px-2 py-1 btn-sm rounded-2 border border-orange gap-2 mb-0">
                         <i class="material-symbols-rounded">person</i>
                         Guest
                     </a>

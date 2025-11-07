@@ -5,11 +5,20 @@ class SetDemoToast
 
     public function index()
     {
-        $ip = $_SERVER['REMOTE_ADDR'];
-        $userAgent = $_SERVER['HTTP_USER_AGENT'];
-        $pcId = md5($ip . $userAgent); // a simple unique identifier
-        echo $pcId;
+        // $referrer = parse_url($_SERVER['HTTP_REFERER'] ?? '/', PHP_URL_PATH);
+        // Flash::set('toast', 'This is Index option. <br />This is ' . $referrer . ' page.', 'info');
+        // $referrerPath = ltrim($referrer, '/');
+        // redirect($referrerPath);
 
+        $data = [
+            'title' => 'Motivation Lines Manager',
+            'breadcrumb' =>  ['Home / Motivation Lines Manager'],
+        ];
+
+        $this->view('setDemoToast/index', $data);
+    }
+    public function notify()
+    {
         $referrer = parse_url($_SERVER['HTTP_REFERER'] ?? '/', PHP_URL_PATH);
         Flash::set('toast', 'This is Notification option. <br />This is ' . $referrer . ' page.', 'info');
         $referrerPath = ltrim($referrer, '/');

@@ -4,21 +4,21 @@
             <div class="card shadow-lg border-0 rounded-4 overflow-hidden mb-2">
 
                 <!-- Header -->
-                <div class="card-header bg-gradient-faded-primary border-radius-lg d-flex justify-content-between align-items-center py-3 px-4">
+                <div class="card-header bg-orange border-radius-lg d-flex justify-content-between align-items-center py-3 px-4">
                     <h5 class="mb-0 text-white d-flex align-items-center gap-2">
                         <i class="material-symbols-outlined">file_export</i> Extraction Results
                     </h5>
 
                     <div class="d-flex gap-3 align-items-center justify-content-between">
                         <div class="d-flex gap-2 align-items-center">
-                            <a href="<?= esc($excel_path); ?>" class="btn btn-success d-flex align-items-center gap-2 mb-0 py-1" download title="Download Excel File">
+                            <a href="<?= esc($excel_path); ?>" class="btn btn-outline-dark d-flex align-items-center gap-2 mb-0 py-1" download title="Download Excel File">
                                 <i class="material-symbols-outlined">download</i> Download
                             </a>
                             <a href="/pdf" class="btn btn-outline-purple d-flex align-items-center gap-1 mb-0 py-1" title="Back to Upload Page">
                                 <i class="material-symbols-outlined">arrow_back</i> Back
                             </a>
                         </div>
-                       
+
                     </div>
                 </div>
 
@@ -40,7 +40,7 @@
                     <?php if ($hasAnyData): ?>
                         <!-- Navigation Tabs -->
                         <div class="d-flex flex-wrap tabs-scroll-wrapper align-items-center justify-content-between mb-3 border-bottom">
-                            <ul class="nav nav-tabs border-0"
+                            <ul class="nav nav-tabs gap-1 border-0"
                                 id="resultTabs" role="tablist">
 
                                 <?php if ($hasSeller && $hasService): ?>
@@ -104,9 +104,9 @@
                                         <table class="table table-hover align-middle">
                                             <thead class="table-light text-uppercase small">
                                                 <tr>
-                                                    <th >File Name</th>
-                                                    <th >Type</th>
-                                                    <th >Company</th>
+                                                    <th>File Name</th>
+                                                    <th>Type</th>
+                                                    <th>Company</th>
                                                     <th>GeM Seller ID</th>
                                                     <th>Contact</th>
                                                     <th>Email</th>
@@ -118,8 +118,8 @@
                                             <tbody>
                                                 <?php foreach ($allData as $data): ?>
                                                     <tr>
-                                                        <td ><?= esc(basename($data['file_name'])); ?></td>
-                                                        <td >
+                                                        <td><?= esc(basename($data['file_name'])); ?></td>
+                                                        <td>
                                                             <?php
                                                             if (!empty($data['service_provider_details']) && !empty($data['seller_details'])) echo 'Both';
                                                             elseif (!empty($data['service_provider_details'])) echo 'Service Provider';
@@ -127,7 +127,7 @@
                                                             else echo '---';
                                                             ?>
                                                         </td>
-                                                        <td class="fw-semibold text-orange ">
+                                                        <td class="fw-bold text-orange">
                                                             <?= esc($data['service_provider_details']['company_name'] ?? $data['seller_details']['company_name'] ?? '---'); ?>
                                                         </td>
                                                         <td><?= esc($data['seller_details']['gem_seller_id'] ?? '---'); ?></td>
@@ -155,7 +155,7 @@
                                                 <tr>
                                                     <!-- <th class="sticky-col col-1">File Name</th> -->
                                                     <th class="sticky-col col-1">Company</th>
-                                                    <th >GeM Seller ID</th>
+                                                    <th>GeM Seller ID</th>
                                                     <th>Contact</th>
                                                     <th>Email</th>
                                                     <th>Address</th>
@@ -168,8 +168,8 @@
                                                     <?php if (!empty($data['service_provider_details'])): ?>
                                                         <tr>
                                                             <!-- <td class="sticky-col col-1"><?= esc(basename($data['file_name'])); ?></td> -->
-                                                            <td class="sticky-col col-1 fw-semibold text-orange"><?= esc($data['service_provider_details']['company_name'] ?? '---'); ?></td>
-                                                            <td ><?= esc($data['service_provider_details']['gem_seller_id'] ?? '---'); ?></td>
+                                                            <td class="sticky-col col-1 fw-bold text-orange"><?= esc($data['service_provider_details']['company_name'] ?? '---'); ?></td>
+                                                            <td><?= esc($data['service_provider_details']['gem_seller_id'] ?? '---'); ?></td>
                                                             <td><?= esc($data['service_provider_details']['contact_number'] ?? '---'); ?></td>
                                                             <td><?= esc($data['service_provider_details']['email'] ?? '---'); ?></td>
                                                             <td><?= esc($data['service_provider_details']['address'] ?? '---'); ?></td>
@@ -193,7 +193,7 @@
                                                 <tr>
                                                     <!-- <th class="sticky-col col-1">File Name</th> -->
                                                     <th class="sticky-col col-1">Company</th>
-                                                    <th >GeM Seller ID</th>
+                                                    <th>GeM Seller ID</th>
                                                     <th>Contact</th>
                                                     <th>Email</th>
                                                     <th>Address</th>
@@ -206,10 +206,10 @@
                                                     <?php if (!empty($data['seller_details'])): ?>
                                                         <tr>
                                                             <!-- <td class="sticky-col col-1"><?= esc(basename($data['file_name'])); ?></td> -->
-                                                            <td class="sticky-col col-1 fw-semibold text-orange">
+                                                            <td class="sticky-col col-1 fw-bold text-orange">
                                                                 <?= esc($data['seller_details']['company_name'] ?? '---'); ?>
                                                             </td>
-                                                            <td ><?= esc($data['seller_details']['gem_seller_id'] ?? '---'); ?></td>
+                                                            <td><?= esc($data['seller_details']['gem_seller_id'] ?? '---'); ?></td>
                                                             <td><?= esc($data['seller_details']['contact_number'] ?? '---'); ?></td>
                                                             <td><?= esc($data['seller_details']['email'] ?? '---'); ?></td>
                                                             <td><?= esc($data['seller_details']['address'] ?? '---'); ?></td>
@@ -227,7 +227,7 @@
 
                             <!-- All Details -->
                             <div class="tab-pane fade <?= (!$hasSeller && !$hasService ? 'show active' : '') ?> " id="details">
-                            <!-- <div class="tab-pane fade <?= (!$hasSeller && !$hasService ? 'show active' : '') ?> scroll-wrapper" id="details"> -->
+                                <!-- <div class="tab-pane fade <?= (!$hasSeller && !$hasService ? 'show active' : '') ?> scroll-wrapper" id="details"> -->
                                 <?php foreach ($allData as $index => $data): ?>
                                     <div class="card detail-card mb-4 border-0 shadow-sm">
                                         <div class="detail-card-header d-flex align-items-center justify-content-between py-2 px-3">

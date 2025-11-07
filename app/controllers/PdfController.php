@@ -24,40 +24,40 @@ class PdfController
 
     public function upload()
     {
-        unset($_SESSION['pdf_excel_data']); // Clear previous session data
-        if (empty($_FILES['pdf_files']) && empty($_FILES['pdf_file'])) {
+        unset($_SESSION['pdf_excel_data']);
+
+        if (!isset($_POST['result']) || empty($_POST['result'])) {
             Flash::set('toast', 'File upload failed. Please try again.', 'danger');
             redirect('pdf');
         }
 
-        $allData = [];
+        $result = json_decode($_POST['result'], true);
 
-        // Support both single and multiple uploads
-        $files = $_FILES['pdf_files']['tmp_name'] ?? [$_FILES['pdf_file']['tmp_name']];
-        $names = $_FILES['pdf_files']['name'] ?? [$_FILES['pdf_file']['name']];
+        $datas = $result['allData'];
+        // $file_names = $result['file_names'];
 
-        if (!is_array($files)) {
-            $files = [$files];
-            $names = [$names];
-        }
+        // show($result);       // Debug
+        // show($file_names);   // Debug
+        // show($datas);        // Debug
 
-        $parser = new Parser();
         $model = new PdfModel();
 
-        foreach ($files as $key => $tmpName) {
-            if (is_uploaded_file($tmpName)) {
-                $filename = basename($names[$key]);
+        $allData = [];
 
-                // Parse PDF directly from tmp file
-                $pdf = $parser->parseFile($tmpName);
-                $text = $pdf->getText();
+        foreach ($datas as $item) {
 
-                $data = $model->extractData($text);
-                $data['file_name'] = $filename;
+            // ✅ Extract text
+            $extracted = $model->extractData($item['raw_text']);
 
-                $allData[] = $data;
-            }
+            // ✅ Add correct file name
+            $extracted['file_name'] = $item['file_name'];
+
+            // ✅ Add into final array
+            $allData[] = $extracted;
         }
+
+        // show($allData);
+
 
         // Generate Excel with multiple sheets
         $spreadsheet = new Spreadsheet();
@@ -72,6 +72,9 @@ class PdfController
         // Sheet 3: Combined Sheet
         $this->createCombinedSheet($spreadsheet, $allData);
 
+        // Sheet 4: Contract Details
+        $this->createContractDetailsSheet($spreadsheet, $allData);
+
         // Save Excel file
         // Store $allData in session for download later
         $_SESSION['pdf_excel_data'] = $allData;
@@ -84,6 +87,41 @@ class PdfController
             'breadcrumb' => ['PDF', 'Extracted Data']
         ];
         $this->view('pdf/result_view', $data);
+        // show($allData);
+    }
+
+
+
+    private function createContractDetailsSheet($spreadsheet, $allData)
+    {
+        $sheet = $spreadsheet->getSheetByName('Contract Details');
+        $newSheet = false;
+
+        if (!$sheet) {
+            $sheet = $spreadsheet->createSheet();
+            $sheet->setTitle('Contract Details');
+            $headers = ['File Name', 'Contract No.', 'Generated Date'];
+            $this->applyHeaderStyle($sheet, $headers);
+            $newSheet = true;
+        }
+        $row = $sheet->getHighestRow();
+        if ($newSheet || $row < 2) {
+            $row = 2;
+        } else {
+            $row += 1;
+        }
+
+        foreach ($allData as $data) {
+            $details = $data['contract_details'] ?? [];
+            if (empty($details)) {
+                continue;
+            }
+            $sheet->setCellValue('A' . $row, $data['file_name']);
+            $sheet->setCellValue('B' . $row, $details['contract_no'] ?? 'N/A');
+            $sheet->setCellValue('C' . $row, $details['generated_date'] ?? 'N/A');
+            $row++;
+        }
+        $this->setColumnWidths($sheet, [20, 25, 20,]);
     }
 
     private function createSellerDetailsSheet($spreadsheet, $allData)
@@ -222,6 +260,7 @@ class PdfController
         $this->createSellerDetailsSheet($spreadsheet, $allData);
         $this->createServiceProviderSheet($spreadsheet, $allData);
         $this->createCombinedSheet($spreadsheet, $allData);
+        $this->createContractDetailsSheet($spreadsheet, $allData);
 
         $filename = 'contract_data_' . date('Y-m-d_H-i-s') . '.xlsx';
         header('Content-Type: application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');

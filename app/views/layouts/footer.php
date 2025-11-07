@@ -2,7 +2,7 @@
 </main>
 
 <?php if ($toast = Flash::get('toast')): ?>
-    <div class="toast-container-custom position-fixed bottom-0 end-0 p-3">
+    <div class="toast-container-custom position-fixed bottom-0 end-0 p-3 user-select-none">
         <div class="toast show text-bg-<?= htmlspecialchars($toast['type']); ?> border-0 shadow-lg fade-out"
             role="alert" aria-live="assertive" aria-atomic="true" id="flashToast">
             <div class="d-flex align-items-start justify-content-between">
@@ -35,7 +35,7 @@
 <?php endif; ?>
 
 <!-- Top Alert Card -->
-<div id="topAlert" class="position-fixed start-50 translate-middle-x d-none"
+<div id="topAlert" class="position-fixed start-50 translate-middle-x d-none user-select-none"
     style="top: 20; z-index: 9999; max-width: 600px; width: 90%;">
     <div class="alert rounded-4 border-0 text-center d-flex flex-column align-items-center p-4 pb-2 mb-0 animate-slide-middle">
         <div class="alert-icon-wrapper mb-3 d-flex align-items-center justify-content-center rounded-circle">
