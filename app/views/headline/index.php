@@ -1,315 +1,224 @@
-<style>
-    .card-header {
-        background: linear-gradient(135deg, #a4a2c2 0%, #e89e4e 100%);
-        color: white;
-        border-radius: 14px 14px 0 0 !important;
-        padding: 18px 22px;
-        box-shadow: inset 0 0 12px rgba(255, 255, 255, 0.25);
-    }
+<div class="container-fluid py-3 min-vh-88">
+    <div class="row ">
+        <div class="col-lg-7 mb-sm-3 mb-0">
+            <div class="card">
+                <div class="card-header bg-orange border-radius-lg d-flex align-items-center justify-content-between">
+                    <div class="d-flex align-items-center gap-2">
+                        <h6 class="text-white text-sm h6 mb-0 fw-bold pb-0 d-flex align-items-center">
+                            <div class="form-check ps-0 me-2">
+                                <input class="form-check-input" type="checkbox" id="selectAllHeadlines"
+                                    style="width: 20px; height: 20px;">
+                            </div>
 
-    .motivation-item {
-        background: #ffffff;
-        border-left: 4px solid #6c63ff;
-        padding: 16px;
-        margin-bottom: 12px;
-        border-radius: 10px;
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        transition: all .25s ease;
-        box-shadow: 0 3px 10px rgba(0, 0, 0, 0.05);
-    }
+                            <i class="material-symbols-rounded text-2xl ms-1">wb_incandescent</i>
+                            <span class="text-white">Headlines</span>
+                        </h6>
+                        <span class="badge text-dark text-sm p-1 border-radius-md" style="background: wheat;" id="motivationCount">
+                            <?php echo count($headlines); ?>
+                        </span>
+                        <a role="button" href="#" id="deleteHeadlinesSelected" title="Delete Selected"
+                            class="btn btn-danger shadow-none btn-sm mb-0 border-radius-md d-none py-1 px-1" style="border-radius: 4px;">
+                            <i class="material-symbols-rounded align-middle text-lg m-0 p-0">delete</i>
+                            <span class="align-middle text-sm m-0 p-0">Delete</span>
+                        </a>
+                        <a role="button"
+                            class="btn btn-info shadow-none btn-sm mb-0 border-radius-md d-none py-1 px-1"
+                            id="toggleStatusSelected">
+                            <i class="material-symbols-outlined align-middle text-md">sync_alt</i>
+                            <span id="toggleLabel align-middle text-sm m-0 p-0">Toggle Status</span>
+                        </a>
 
-    .motivation-item:hover {
-        transform: translateX(4px);
-        background: #f7f7ff;
-    }
+                    </div>
+                    <button type="button" style="background: #c3bd9dff;" class="btn text-purple mb-0 gap-1 px-2 py-2 d-flex align-items-center btn-add-headline" data-bs-toggle="modal" data-bs-target="#headlineModal">
+                        <i class="material-symbols-outlined text-md">add</i> Create New
+                    </button>
 
-    .empty-state {
-        text-align: center;
-        padding: 60px 20px;
-        color: #6c757d;
-    }
 
-    .empty-state i {
-        font-size: 72px;
-        margin-bottom: 15px;
-        opacity: 0.35;
-    }
+                </div>
+                <div class="card-body p-1">
+                    <div class="px-0 py-0 scroll-wrapper" id="listContainer" style="max-height: 300px !important;">
+                        <?php if (!empty($headlines)) : ?>
+                            <?php foreach ($headlines as $headline) : ?>
+                                <div class="card shadow-xs list-card border-radius-sm mb-1">
+                                    <div class="card-body py-1 px-2 d-flex justify-content-between align-items-center">
 
-    .modal-content {
-        border-radius: 12px;
-        border: none;
-    }
+                                        <!-- Left Section -->
+                                        <div class="d-flex align-items-center">
+                                            <div class="form-check ps-0 p-2">
+                                                <input class="form-check-input headline-checkbox"
+                                                    type="checkbox"
+                                                    data-status="<?= $headline['status'] ?>"
+                                                    value="<?= esc(encryptId($headline['id'])) ?>">
+                                            </div>
+                                            <i class="material-symbols-rounded text-lg me-2 text-orange">wb_incandescent</i>
 
-    .modal-header {
-        background: #6c63ff;
-        color: #fff;
-        border-radius: 12px 12px 0 0;
-    }
+                                            <div class="d-flex flex-column">
+                                                <h6 class="list-name mb-0 text-sm fw-bold text-dark">
+                                                    <?= esc($headline['text'] ?? '') ?>
+                                                </h6>
+                                                <!-- Created Date -->
+                                                <p class="text-xxs text-muted mb-0 mt-1">
+                                                    Created on:
+                                                    <?= isset($headline['created_at']) ? date('M d, Y h:i A', strtotime($headline['created_at'])) : ''; ?>
+                                                </p>
+                                            </div>
+                                        </div>
 
-    .modal-footer button {
-        min-width: 110px;
-    }
-</style>
+                                        <!-- Dropdown Menu -->
+                                        <div class="d-flex align-items-center gap-2">
+                                            <!-- status -->
+                                            <span class="badge text-white" style="font-size: 0.6rem; background: <?= $headline['status'] == 'active' ? '#198754' : '#dc3545'; ?>; padding: 5px;">
+                                                <?= $headline['status'] == 'active' ? 'Active' : 'Inactive'; ?>
+                                            </span>
+                                            <div class="dropdown">
+                                                <a class="text-secondary mb-0 btn-sm" href="#" role="button" id="dropdownMenu<?= $headline['id']; ?>" data-bs-toggle="dropdown" aria-expanded="false">
+                                                    <i class="material-symbols-rounded text-2xl">more_vert</i>
+                                                </a>
 
-<div class="container-fluid py-2 min-vh-90">
-    <div class="row mt-3">
-        <div class="ms-1">
-            <h3 class="text-primary mb-0 fw-bold">
-                <i class="material-symbols-rounded align-middle text-4xl">wb_incandescent</i>
-                Motivation Lines Manager
-            </h3>
-            <p class="mb-4">Add, edit, and manage your motivational messages</p>
+                                                <ul class="dropdown-menu dropdown-menu-end px-1 py-1 border-1 shadow border-secondary" aria-labelledby="dropdownMenu<?= $headline['id']; ?>">
+                                                    <li>
+                                                        <a href="#"
+                                                            data-id="<?= esc(encryptId($headline['id'])); ?>"
+                                                            data-text="<?= esc($headline['text']); ?>"
+                                                            data-status="<?= esc($headline['status']); ?>"
+                                                            data-description="<?= esc($headline['description']); ?>"
+                                                            class="dropdown-item border-radius-md d-flex align-items-center gap-2 px-1 btn-edit-headline">
+                                                            <i class="material-symbols-rounded text-lg text-orange">edit</i>
+                                                            Edit Headline
+                                                        </a>
+                                                    </li>
+
+                                                    <li>
+                                                        <a href="#"
+                                                            data-id="<?= esc(encryptId($headline['id'])); ?>"
+                                                            class="dropdown-item border-radius-md d-flex align-items-center gap-2 px-1 btn-delete-headline">
+                                                            <i class="material-symbols-rounded text-lg text-red">delete</i>
+                                                            Delete Headline
+                                                        </a>
+                                                    </li>
+                                                </ul>
+                                            </div>
+                                        </div>
+
+                                    </div>
+                                </div>
+                            <?php endforeach; ?>
+
+                        <?php else : ?>
+                            <div class="d-flex flex-column align-items-center justify-content-center h-100 py-1 user-select-none">
+                                <img src="<?= ROOT; ?>/assets/images/empty.svg"
+                                    width="200" height="200" class="opacity-75 user-select-none pointer-events-none" alt="Empty" draggable="false">
+                                <h6 class="text-secondary fw-semibold mb-0 d-flex align-items-center gap-2">
+                                    <i class="material-symbols-rounded text-secondary">wb_incandescent</i>
+                                    No Headlines Found
+                                </h6>
+                                <p class="text-muted small mt-1" style="font-size: 0.75rem;">
+                                    Click the button above to add your first headline.
+                                </p>
+                            </div>
+
+                        <?php endif; ?>
+
+                    </div>
+                </div>
+            </div>
         </div>
-    </div>
-
-    <div class="row g-4">
-        <!-- ADD NEW MOTIVATION -->
-        <div class="col-lg-6 mx-auto">
-            <div class="card mb-3">
-                <div class="card-header">
-                    <h5 class="mb-0"><i class="fas fa-plus-circle me-1"></i> Add New Motivation</h5>
+        <div class="col-lg-5">
+            <!-- to set on or off the headline -->
+            <div class="card shadow-xs border-radius-md">
+                <div class="card-header pb-0">
+                    <div class="d-flex justify-content-between">
+                        <h6 class="mb-0">Set Headline</h6>
+                    </div>
                 </div>
                 <div class="card-body">
-                    <form id="addMotivationForm">
-                        <div class="input-group">
-                            <input type="text" class="form-control merge-input" id="motivationInput"
-                                placeholder="Enter your motivation line..." required>
-                            <button class="btn btn-primary" type="submit">
-                                <i class="fas fa-plus"></i> Add
-                            </button>
+                    <div class="form-check form-switch">
+                        <input class="form-check-input"
+                            type="checkbox"
+                            id="setHeadline"
+                            <?= isset($headlineEnabled) && $headlineEnabled === 'on' ? 'checked' : '' ?>>
+
+                        <label class="form-check-label" for="setHeadline">Set Headline</label>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+<!-- Add / Edit Headline Modal -->
+<div class="modal fade"
+    id="headlineModal"
+    tabindex="-1"
+    aria-labelledby="headlineModalLabel"
+    aria-hidden="true"
+    data-bs-backdrop="static"
+    data-bs-keyboard="false">
+
+    <div class="modal-dialog modal-lg modal-dialog-top modal-dialog-scrollable">
+        <div class="modal-content border-0 shadow-lg rounded-4 overflow-hidden">
+
+            <div class="modal-header bg-orange text-white">
+                <h6 class="modal-title fw-bold d-flex align-items-center" id="headlineModalLabel">
+                    <i class="material-symbols-rounded me-2" id="headlineModalIcon">add_circle</i>
+                    <span id="headlineModalTitle">Create New Headline</span>
+                </h6>
+                <button type="button" class="btn-close btn-close-white mb-0" data-bs-dismiss="modal"></button>
+            </div>
+
+            <form id="headlineForm" method="POST" action="/headline/create">
+
+                <div class="modal-body">
+                    <div class="row mb-2 d-flex align-items-center">
+                        <div class="col-md-8">
+                            <label for="headlineText" class="form-label fw-semibold">Headline</label>
+                            <textarea style="resize:none;" rows="3" class="form-control merge-input" id="headlineText"
+                                name="headlineText"
+                                placeholder="Enter a headline or paste multiple headlines separated by commas or new lines..."></textarea>
+
                         </div>
-                    </form>
-                </div>
-            </div>
-        </div>
+                        <div class="col-md-4">
+                            <label for="headlinesListSelect" class="form-label fw-semibold">Status</label>
+                            <div class="custom-select p-0" id="headlinesListSelect">
+                                <div class="custom-select__trigger p-2 px-2 border" style="width: 100%;">
+                                    <span class="custom-select__selected opacity-6" style="font-size:13px">Active</span>
+                                    <i class="custom-select__arrow material-symbols-rounded opacity-6">expand_more</i>
+                                </div>
+                                <div class="custom-select__options">
+                                    <div class="custom-select__option selected" data-value="active">
+                                        Active
+                                    </div>
+                                    <div class="custom-select__option" data-value="inactive">
+                                        Inactive
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
 
-        <!-- MOTIVATIONS LIST -->
-        <div class="col-lg-6 mx-auto">
-            <div class="card">
-                <div class="card-header d-flex justify-content-between">
-                    <h5 class="mb-0"><i class="fas fa-list me-1"></i> Your Motivations</h5>
-                    <span class="badge bg-light text-dark" id="motivationCount">0</span>
-                </div>
-                <div class="card-body" id="motivationsList">
-                    <!-- Dynamic Items -->
-                </div>
-            </div>
-        </div>
-    </div>
-</div>
-
-<!-- EDIT MODAL -->
-<div class="modal fade" id="editModal" tabindex="-1">
-    <div class="modal-dialog">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title"><i class="fas fa-edit me-2"></i>Edit Motivation</h5>
-                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
-            </div>
-            <div class="modal-body">
-                <form id="editMotivationForm">
-                    <input type="hidden" id="editMotivationId">
                     <div class="mb-3">
-                        <label for="editMotivationInput" class="form-label">Motivation Text</label>
-                        <textarea class="form-control" id="editMotivationInput" rows="3" required></textarea>
+                        <label for="headlineDescription" class="form-label fw-semibold">Description</label>
+                        <textarea class="form-control merge-input" id="headlineDescription"
+                            name="headlineDescription" rows="2"
+                            placeholder="Short description (optional)" style="resize:none;"></textarea>
                     </div>
-                </form>
-            </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                <button type="button" class="btn btn-primary" id="saveEditBtn">Save Changes</button>
-            </div>
+                    <input type="hidden" id="headlineId" name="headlineId">
+                    <input type="hidden" id="headlineStatus" name="headlineStatus" value="active">
+                </div>
+
+                <div class="modal-footer border-top border-secondary">
+                    <button type="button" class="btn btn-outline-secondary mb-0" data-bs-dismiss="modal">
+                        Cancel
+                    </button>
+
+                    <button type="submit" class="btn bg-orange text-white fw-bold mb-0" id="headlineSubmitBtn">
+                        Create Headline
+                    </button>
+                </div>
+
+            </form>
+
         </div>
     </div>
 </div>
-
-<script>
-    $(document).ready(function() {
-        const ROOT = '<?= ROOT ?>';
-
-        // Load motivations on page load
-        loadMotivations();
-
-        // Add new motivation
-        $('#addMotivationForm').on('submit', function(e) {
-            e.preventDefault();
-            const text = $('#motivationInput').val().trim();
-
-            if (text) {
-                $.ajax({
-                    url: ROOT + '/headline/add',
-                    method: 'POST',
-                    data: {
-                        text: text
-                    },
-                    dataType: 'json',
-                    success: function(response) {
-                        if (response.success) {
-                            $('#motivationInput').val('');
-                            loadMotivations();
-                            showToast('Motivation added successfully!', 'success');
-                        } else {
-                            showToast(response.message || 'Error adding motivation', 'error');
-                        }
-                    },
-                    error: function() {
-                        showToast('Error adding motivation', 'error');
-                    }
-                });
-            }
-        });
-
-        // Edit button click
-        $(document).on('click', '.btn-edit', function() {
-            const id = $(this).data('id');
-            const text = $(this).data('text');
-            $('#editMotivationId').val(id);
-            $('#editMotivationInput').val(text);
-            $('#editModal').modal('show');
-        });
-
-        // Save edit
-        $('#saveEditBtn').on('click', function() {
-            const id = $('#editMotivationId').val();
-            const text = $('#editMotivationInput').val().trim();
-
-            if (text) {
-                $.ajax({
-                    url: ROOT + '/headline/update',
-                    method: 'POST',
-                    data: {
-                        id: id,
-                        text: text
-                    },
-                    dataType: 'json',
-                    success: function(response) {
-                        if (response.success) {
-                            $('#editModal').modal('hide');
-                            loadMotivations();
-                            showToast('Motivation updated successfully!', 'success');
-                        } else {
-                            showToast(response.message || 'Error updating motivation', 'error');
-                        }
-                    },
-                    error: function() {
-                        showToast('Error updating motivation', 'error');
-                    }
-                });
-            }
-        });
-
-        // Delete button click
-        $(document).on('click', '.btn-delete', function() {
-            if (confirm('Are you sure you want to delete this motivation?')) {
-                const id = $(this).data('id');
-                $.ajax({
-                    url: ROOT + '/headline/delete',
-                    method: 'POST',
-                    data: {
-                        id: id
-                    },
-                    dataType: 'json',
-                    success: function(response) {
-                        if (response.success) {
-                            loadMotivations();
-                            showToast('Motivation deleted successfully!', 'success');
-                        } else {
-                            showToast(response.message || 'Error deleting motivation', 'error');
-                        }
-                    },
-                    error: function() {
-                        showToast('Error deleting motivation', 'error');
-                    }
-                });
-            }
-        });
-
-        // Load motivations
-        function loadMotivations() {
-            $.ajax({
-                url: ROOT + '/headline/getAll',
-                method: 'GET',
-                dataType: 'json',
-                success: function(motivations) {
-                    displayMotivations(motivations);
-                },
-                error: function() {
-                    console.error('Error loading motivations');
-                }
-            });
-        }
-
-        // Display motivations
-        function displayMotivations(motivations) {
-            const container = $('#motivationsList');
-            container.empty();
-
-            if (!motivations || motivations.length === 0) {
-                container.html(`
-                <div class="empty-state">
-                    <i class="fas fa-inbox"></i>
-                    <h5>No motivations yet</h5>
-                    <p>Add your first motivation line above!</p>
-                </div>
-            `);
-                $('#motivationCount').text('0');
-                return;
-            }
-
-            $('#motivationCount').text(motivations.length);
-
-            motivations.forEach(function(item) {
-                const html = `
-                <div class="motivation-item">
-                    <div class="flex-grow-1">
-                        <i class="fas fa-quote-left text-muted me-2"></i>
-                        <span>${escapeHtml(item.text)}</span>
-                    </div>
-                    <div class="btn-group btn-group-sm ms-2">
-                        <button class="btn btn-outline-primary btn-edit" 
-                                data-id="${item.id}" 
-                                data-text="${escapeHtml(item.text)}">
-                            <i class="fas fa-edit"></i>
-                        </button>
-                        <button class="btn btn-outline-danger btn-delete" 
-                                data-id="${item.id}">
-                            <i class="fas fa-trash"></i>
-                        </button>
-                    </div>
-                </div>
-            `;
-                container.append(html);
-            });
-        }
-
-        // Helper function to escape HTML
-        function escapeHtml(text) {
-            const map = {
-                '&': '&amp;',
-                '<': '&lt;',
-                '>': '&gt;',
-                '"': '&quot;',
-                "'": '&#039;'
-            };
-            return text.replace(/[&<>"']/g, m => map[m]);
-        }
-
-        // Toast notification
-        function showToast(message, type) {
-            const bgColor = type === 'success' ? 'bg-success' : 'bg-danger';
-            const toast = `
-            <div class="position-fixed bottom-0 end-0 p-3" style="z-index: 11">
-                <div class="toast show ${bgColor} text-white" role="alert">
-                    <div class="toast-body">
-                        ${message}
-                    </div>
-                </div>
-            </div>
-        `;
-            $('body').append(toast);
-            setTimeout(() => $('.toast').remove(), 3000);
-        }
-    });
-</script>

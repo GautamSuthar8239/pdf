@@ -1,14 +1,132 @@
 <div class="container-fluid min-vh-75 px-2 py-1">
-    <div class="row g-4 align-items-start justify-content-center mt-1" id="uploadRow">
+    <div class="row g-4 align-items-start justify-content-center pt-1" id="uploadRow">
         <!-- Upload Section -->
         <div class="col-lg-8 col-md-10" id="uploadCol">
             <div class="card shadow-sm border-0 rounded-4 overflow-hidden">
-                <div class="card-header border-radius-lg bg-orange">
+                <div class="card-header border-radius-lg bg-orange d-flex align-items-center justify-content-between">
                     <h5 class="mb-0 text-white d-flex align-items-center gap-2">
                         <i class="material-symbols-outlined">cloud_upload</i> Upload PDF Files
                     </h5>
 
-                    <!-- a checkbox  dropdown for to select to show data and to have data in excel file -->
+                    <!-- Checkbox dropdown for selecting data to show and export to Excel -->
+                    <div class="dropdown">
+                        <a class="btn btn-light d-flex align-items-center gap-1 px-2 py-1 shadow-sm hover-lift mb-0"
+                            data-bs-toggle="dropdown" aria-expanded="false" role="button"
+                            style="border-radius: 6px; border: 1px solid #e5e7eb; transition: all 0.2s;">
+                            <i class="material-symbols-outlined text-orange" style="font-size: 18px;">tune</i>
+                            <span class="fw-semibold text-orange" style="font-size: 13px;">Filter Data</span>
+                            <i class="material-symbols-outlined text-orange ms-1" style="font-size: 16px;">expand_more</i>
+                        </a>
+
+                        <div class="dropdown-menu dropdown-menu-end p-2 border-0 shadow-lg"
+                            style="min-width: 240px; border-radius: 10px; margin-top: 6px;">
+
+                            <!-- Header -->
+                            <div class="mb-2 border-bottom gap-2 d-flex align-items-center ">
+                                <div class="form-check m-0 ps-1 p-0">
+                                    <input class="form-check-input" id="selectAllData"
+                                        type="checkbox"
+                                        style="width: 18px; height: 18px;">
+                                </div>
+
+                                <div class="d-flex align-items-start flex-column gap-0">
+                                    <h6 class="mb-0 fw-bold" style="color: #1f2937; font-size: 12px;">
+                                        Select Data to Display
+                                    </h6>
+                                    <small class="text-muted ms-2" style="font-size: 10px;">
+                                        Choose which columns to show
+                                    </small>
+                                </div>
+                            </div>
+
+                            <!-- ✅ Dynamic Filter Options -->
+                            <div class="filter-options">
+
+                                <?php
+                                // Icon mapping
+                                $iconMap = [
+                                    'seller' => 'store',
+                                    'service' => 'support_agent',
+                                    'contract' => 'description',
+                                    'raw_text' => 'text_snippet',
+                                    'buyer' => 'badge',
+                                    'consignee' => 'local_shipping',
+                                    'organisation' => 'apartment',
+                                    'financial' => 'payments',
+                                    'paying' => 'account_balance',
+                                ];
+
+                                foreach ($sectionList as $key => $label):
+
+                                    $disabled = ($key === 'seller' || $key === 'service') ? 'disabled checked' : '';
+                                    $cursor = $disabled ? "not-allowed" : "pointer";
+                                    $bg = $disabled ? "background:#e0eaf5ff;" : "background:transparent;";
+                                    $icon = $iconMap[$key] ?? 'fact_check';
+                                ?>
+
+                                    <label class="filter-item d-flex align-items-center justify-content-between px-2 py-1 rounded mb-1"
+                                        style="cursor: <?= $cursor ?>; <?= $bg ?> transition: background 0.2s;"
+                                        onmouseover="if(!('<?= $disabled ?>')) this.style.background='#f3f4f6';"
+                                        onmouseout="if(!('<?= $disabled ?>')) this.style.background='transparent';">
+
+                                        <div class="d-flex align-items-center gap-2">
+                                            <i class="material-symbols-outlined text-primary" style="font-size: 18px;">
+                                                <?= $icon ?>
+                                            </i>
+                                            <span class="fw-semibold" style="font-size: 12px; color: #374151;">
+                                                <?= $label ?>
+                                            </span>
+                                        </div>
+
+                                        <div class="form-check m-0">
+                                            <input class="form-check-input data-filter"
+                                                type="checkbox"
+                                                value="<?= $key ?>"
+                                                <?= $disabled ?>
+                                                style="width: 16px; height: 16px;">
+                                        </div>
+                                    </label>
+
+                                <?php endforeach; ?>
+
+                            </div>
+
+                        </div>
+
+                    </div>
+
+                    <style>
+                        .hover-lift:hover {
+                            transform: translateY(-1px);
+                            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1) !important;
+                        }
+
+                        .form-check-input:checked {
+                            background-color: #3b82f6;
+                            border-color: #3b82f6;
+                        }
+
+                        .form-check-input:focus {
+                            border-color: #3b82f6;
+                            box-shadow: 0 0 0 0.15rem rgba(59, 130, 246, 0.25);
+                        }
+
+                        .dropdown-menu {
+                            animation: slideDown 0.2s ease-out;
+                        }
+
+                        @keyframes slideDown {
+                            from {
+                                opacity: 0;
+                                transform: translateY(-8px);
+                            }
+
+                            to {
+                                opacity: 1;
+                                transform: translateY(0);
+                            }
+                        }
+                    </style>
 
                 </div>
 
@@ -59,19 +177,19 @@
         </div>
 
         <!-- File List -->
-        <div class="col-lg-4 col-md-10">
-            <div class="card border-0 shadow-sm border-radius-lg">
-                <div class="card-header" style="background: #ececff;">
+        <div class="col-lg-4 col-md-10 d-none" id="fileListCol">
+            <div class="card border-0 shadow-sm border-radius-lg d-none" id="fileListCard" style="min-height: 245px;">
+                <div class="card-header py-2" style="background: #dcdcf8ff;">
                     <h6 class="fw-bold text-info d-flex align-items-center justify-content-between mb-0">
-                        <div class="d-flex align-items-center gap-1"> <i class="material-symbols-outlined text-info mb-0">description</i>
+                        <div class="d-flex align-items-center gap-1">
+                            <i class="material-symbols-outlined text-info mb-0">description</i>
                             Uploaded Files
                         </div>
                         <span id="fileCount">{0}</span>
                     </h6>
                 </div>
-                <div class="card-body p-1">
+                <div class="card-body p-2">
                     <div class="file-list text-center border-dashed border-1 border-info rounded-3 p-2" id="fileList">
-
                         <div class="file-item d-flex justify-content-center gap-2 align-items-center">
                             <span class="material-symbols-outlined text-info">attach_file</span>
                             No files uploaded.
@@ -79,13 +197,31 @@
                     </div>
                 </div>
             </div>
+            <div class="card border-0 shadow-sm mt-3 border-radius-lg d-none" id="duplicateSummaryCard" style="min-height: 245px; max-height: 242px;">
+                <div class="card-header py-2" style="background: #d6a4ffff;">
+                    <h6 class="fw-bold text-white d-flex align-items-center justify-content-between mb-0">
+                        <div class="d-flex align-items-center gap-1">
+                            <i class="material-symbols-outlined mb-0">file_copy</i>
+                            Duplicate Summary
+                        </div>
+                        <span id="duplicateCount" class="text-white text-md fw-bold">{0}</span>
+                    </h6>
+                </div>
+                <div class="card-body p-2" id="duplicateSummaryBody" style="min-height: 130px;">
+                    <div class="file-list border-dashed border-1 border-info rounded-3 p-2" style="max-height: 200px !important;" id="duplicateList">
+                        <div class="file-item d-flex justify-content-center gap-2 align-items-center">
+                            <i class="material-symbols-outlined text-info">info</i>
+                            No duplicate files found.
+                        </div>
+                    </div>
+                </div>
+            </div>
         </div>
-
     </div>
 </div>
 
-<script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
-<script src="<?= ROOT; ?>/assets/js/common.js"></script>
+<!-- <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script> -->
+<!-- <script src="<?= ROOT; ?>/assets/js/common.js"></script> -->
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.14.305/pdf.min.js"></script>
 <!-- SheetJS (Excel generation) -->

@@ -14,9 +14,11 @@ class PdfController
     {
         unset($_SESSION['pdf_excel_data']); // Clear previous session data
 
+        $sectionList = (new PdfModel())->getAvailableSections();
         $data = [
             'title' => 'Data Extractor',
             'breadcrumb' =>  ['Home / PDF Uploader'],
+            'sectionList' => $sectionList,
         ];
 
         $this->view('pdf/upload_form', $data);
@@ -32,62 +34,97 @@ class PdfController
         }
 
         $result = json_decode($_POST['result'], true);
+        $filters = json_decode($_POST['filters'], true);
 
         $datas = $result['allData'];
-        // $file_names = $result['file_names'];
+        $duplicates = $result['duplicates'];
+        $summary = $result['summary'];
 
         // show($result);       // Debug
-        // show($file_names);   // Debug
+        // show($filters);   // Debug
         // show($datas);        // Debug
 
         $model = new PdfModel();
 
         $allData = [];
 
-        foreach ($datas as $item) {
+        // $sectionMap = $model->getSectionToFieldMap();
 
-            // ✅ Extract text
+        foreach ($datas as $item) {
             $extracted = $model->extractData($item['raw_text']);
 
-            // ✅ Add correct file name
+            // Add file info
             $extracted['file_name'] = $item['file_name'];
+            $extracted['base_name'] = $item['base_name'];
 
-            // ✅ Add into final array
+            // ✅ Remove unwanted sections according to filters
+            // if (!empty($filters)) {
+            //     foreach ($sectionMap as $filterKey => $sectionName) {
+
+            //         // seller & service ALWAYS kept
+            //         if ($filterKey === 'seller' || $filterKey === 'service') {
+            //             continue;
+            //         }
+
+            //         // If this section is NOT selected → remove it
+            //         if (empty($filters[$filterKey])) {
+            //             unset($extracted[$sectionName]);
+            //         }
+            //     }
+            // }
+
             $allData[] = $extracted;
         }
 
-        // show($allData);
+        show($allData);
+
+        // // Generate Excel with multiple sheets
+        // $spreadsheet = new Spreadsheet();
+        // $spreadsheet->removeSheetByIndex(0);
+
+        // $this->createSellerDetailsSheet($spreadsheet, $allData);
+        // $this->createServiceProviderSheet($spreadsheet, $allData);
+        // $this->createCombinedSheet($spreadsheet, $allData);
+
+        // $sheetMap = [
+        //     'contract'     => 'createContractDetailsSheet',
+        //     'buyer'        => 'createBuyerDetailsSheet',
+        //     'consignee'    => 'createConsigneeDetailsSheet',
+        //     'organisation' => 'createOrganisationDetailsSheet',
+        //     'financial'    => 'createFinancialApprovalSheet',
+        //     'paying'       => 'createPayingAuthoritySheet',
+        //     // 'raw_text'   => 'createRawTextSheet',
+        // ];
+
+        // if (!empty($filters)) {
+        //     foreach ($sheetMap as $key => $method) {
+        //         if (!empty($filters[$key])) {
+        //             $this->$method($spreadsheet, $allData);
+        //         }
+        //     }
+        // } else {
+        //     // Default: create all sheets (fallback)
+        //     $this->createSellerDetailsSheet($spreadsheet, $allData);
+        //     $this->createServiceProviderSheet($spreadsheet, $allData);
+        //     $this->createCombinedSheet($spreadsheet, $allData);
+        // }
 
 
-        // Generate Excel with multiple sheets
-        $spreadsheet = new Spreadsheet();
-        $spreadsheet->removeSheetByIndex(0); // Remove default sheet
+        // // Save Excel file
+        // // Store $allData in session for download later
+        // $_SESSION['pdf_excel_data'] = $allData;
 
-        // Sheet 1: Seller Details
-        $this->createSellerDetailsSheet($spreadsheet, $allData);
-
-        // Sheet 2: Service Provider Details
-        $this->createServiceProviderSheet($spreadsheet, $allData);
-
-        // Sheet 3: Combined Sheet
-        $this->createCombinedSheet($spreadsheet, $allData);
-
-        // Sheet 4: Contract Details
-        $this->createContractDetailsSheet($spreadsheet, $allData);
-
-        // Save Excel file
-        // Store $allData in session for download later
-        $_SESSION['pdf_excel_data'] = $allData;
-
-        // Render result view
-        $data = [
-            'allData' => $allData,
-            'excel_path' => '/pdf/downloadExcel', // new route for Excel download
-            'title' => 'Extracted Data',
-            'breadcrumb' => ['PDF', 'Extracted Data']
-        ];
-        $this->view('pdf/result_view', $data);
-        // show($allData);
+        // // Render result view
+        // $data = [
+        //     'allData' => $allData,
+        //     'duplicates' => $duplicates,
+        //     'summary' => $summary,
+        //     'filters' => $filters,
+        //     'excel_path' => '/pdf/downloadExcel', // new route for Excel download
+        //     'title' => 'Extracted Data',
+        //     'breadcrumb' => ['PDF', 'Extracted Data']
+        // ];
+        // $this->view('pdf/result_view', $data);
     }
 
 
@@ -242,6 +279,220 @@ class PdfController
         }
 
         $this->setColumnWidths($sheet, [20, 20, 25, 20, 18, 25, 40, 20, 25]);
+    }
+
+    private function createPayingAuthoritySheet($spreadsheet, $allData)
+    {
+        $sheet = $spreadsheet->getSheetByName('Paying Authority Details');
+        $newSheet = false;
+
+        if (!$sheet) {
+            $sheet = $spreadsheet->createSheet();
+            $sheet->setTitle('Paying Authority Details');
+
+            $headers = [
+                'File Name',
+                'Role',
+                'Payment Mode',
+                'Designation',
+                'Email',
+                'GSTIN',
+                'Address'
+            ];
+            $this->applyHeaderStyle($sheet, $headers);
+            $newSheet = true;
+        }
+
+        $row = ($newSheet || $sheet->getHighestRow() < 2) ? 2 : $sheet->getHighestRow() + 1;
+
+        foreach ($allData as $data) {
+            $details = $data['paying_authority_details'] ?? [];
+            if (empty($details)) continue;
+
+            $sheet->setCellValue('A' . $row, $data['file_name']);
+            $sheet->setCellValue('B' . $row, $details['role'] ?? 'N/A');
+            $sheet->setCellValue('C' . $row, $details['payment_mode'] ?? 'N/A');
+            $sheet->setCellValue('D' . $row, $details['designation'] ?? 'N/A');
+            $sheet->setCellValue('E' . $row, $details['email'] ?? 'N/A');
+            $sheet->setCellValue('F' . $row, $details['gstin'] ?? 'N/A');
+            $sheet->setCellValue('G' . $row, $details['address'] ?? 'N/A');
+
+            $row++;
+        }
+
+        $this->setColumnWidths($sheet, [20, 20, 20, 25, 25, 20, 45]);
+    }
+
+    private function createBuyerDetailsSheet($spreadsheet, $allData)
+    {
+        $sheet = $spreadsheet->getSheetByName('Buyer Details');
+        $newSheet = false;
+
+        if (!$sheet) {
+            $sheet = $spreadsheet->createSheet();
+            $sheet->setTitle('Buyer Details');
+
+            $headers = [
+                'File Name',
+                'Designation',
+                'Contact',
+                'Email',
+                'GSTIN',
+                'Address'
+            ];
+            $this->applyHeaderStyle($sheet, $headers);
+            $newSheet = true;
+        }
+
+        $row = ($newSheet || $sheet->getHighestRow() < 2) ? 2 : $sheet->getHighestRow() + 1;
+
+        foreach ($allData as $data) {
+            $details = $data['buyer_details'] ?? [];
+            if (empty($details)) continue;
+
+            $sheet->setCellValue('A' . $row, $data['file_name']);
+            $sheet->setCellValue('B' . $row, $details['designation'] ?? 'N/A');
+            $sheet->setCellValue('C' . $row, $details['contact'] ?? 'N/A');
+            $sheet->setCellValue('D' . $row, $details['email'] ?? 'N/A');
+            $sheet->setCellValue('E' . $row, $details['gstin'] ?? 'N/A');
+            $sheet->setCellValue('F' . $row, $details['address'] ?? 'N/A');
+
+            $row++;
+        }
+
+        $this->setColumnWidths($sheet, [20, 20, 20, 25, 25, 40]);
+    }
+
+    private function createConsigneeDetailsSheet($spreadsheet, $allData)
+    {
+        $sheet = $spreadsheet->getSheetByName('Consignee Details');
+        $newSheet = false;
+
+        if (!$sheet) {
+            $sheet = $spreadsheet->createSheet();
+            $sheet->setTitle('Consignee Details');
+
+            $headers = [
+                'File Name',
+                'Designation',
+                'Email',
+                'Contact',
+                'GSTIN',
+                'Address'
+            ];
+            $this->applyHeaderStyle($sheet, $headers);
+            $newSheet = true;
+        }
+
+        $row = ($newSheet || $sheet->getHighestRow() < 2) ? 2 : $sheet->getHighestRow() + 1;
+
+        foreach ($allData as $data) {
+            $details = $data['consignee_details'] ?? [];
+            if (empty($details)) continue;
+
+            $sheet->setCellValue('A' . $row, $data['file_name']);
+            $sheet->setCellValue('B' . $row, $details['gstin'] ?? 'N/A');
+            $sheet->setCellValue('C' . $row, $details['address'] ?? 'N/A');
+
+            $row++;
+        }
+
+        $this->setColumnWidths($sheet, [20, 20, 55]);
+    }
+
+    private function createOrganisationDetailsSheet($spreadsheet, $allData)
+    {
+        $sheet = $spreadsheet->getSheetByName('Organisation Details');
+        $newSheet = false;
+
+        if (!$sheet) {
+            $sheet = $spreadsheet->createSheet();
+            $sheet->setTitle('Organisation Details');
+
+            $headers = [
+                'File Name',
+                'Type',
+                'Ministry',
+                'Department',
+                'Organisation Name',
+                'Office Zone'
+            ];
+            $this->applyHeaderStyle($sheet, $headers);
+            $newSheet = true;
+        }
+
+        $row = ($newSheet || $sheet->getHighestRow() < 2) ? 2 : $sheet->getHighestRow() + 1;
+
+        foreach ($allData as $data) {
+            $details = $data['organisation_details'] ?? [];
+            if (empty($details)) continue;
+
+            $sheet->setCellValue('A' . $row, $data['file_name']);
+            $sheet->setCellValue('B' . $row, $details['type'] ?? 'N/A');
+            $sheet->setCellValue('C' . $row, $details['ministry'] ?? 'N/A');
+            $sheet->setCellValue('D' . $row, $details['department'] ?? 'N/A');
+            $sheet->setCellValue('E' . $row, $details['organisation_name'] ?? 'N/A');
+            $sheet->setCellValue('F' . $row, $details['office_zone'] ?? 'N/A');
+
+            $row++;
+        }
+
+        $this->setColumnWidths($sheet, [20, 20, 30, 25, 35, 20]);
+    }
+
+    private function createRawTextSheet($spreadsheet, $allData)
+    {
+        $sheet = $spreadsheet->createSheet();
+        $sheet->setTitle('Raw Text');
+        $headers = ['File Name', 'Raw Extracted Text'];
+        $this->applyHeaderStyle($sheet, $headers);
+
+        $row = 2;
+
+        foreach ($allData as $data) {
+            $sheet->setCellValue('A' . $row, $data['file_name']);
+            $sheet->setCellValue('B' . $row, $data['raw_text'] ?? '');
+            $sheet->getColumnDimension('B')->setWidth(80);
+            $sheet->getStyle('B' . $row)->getAlignment()->setWrapText(true);
+            $row++;
+        }
+        $this->setColumnWidths($sheet, [20, 100]);
+    }
+
+    private function createFinancialApprovalSheet($spreadsheet, $allData)
+    {
+        $sheet = $spreadsheet->getSheetByName('Financial Approval');
+        $newSheet = false;
+
+        if (!$sheet) {
+            $sheet = $spreadsheet->createSheet();
+            $sheet->setTitle('Financial Approval');
+
+            $headers = [
+                'File Name',
+                'IFD Concurrence',
+                'Administrative Approval',
+                'Financial Approval'
+            ];
+            $this->applyHeaderStyle($sheet, $headers);
+            $newSheet = true;
+        }
+
+        $row = ($newSheet || $sheet->getHighestRow() < 2) ? 2 : $sheet->getHighestRow() + 1;
+
+        foreach ($allData as $data) {
+            $details = $data['financial_approval'] ?? [];
+            if (empty($details)) continue;
+
+            $sheet->setCellValue('A' . $row, $data['file_name']);
+            $sheet->setCellValue('B' . $row, $details['ifd'] ?? 'N/A');
+            $sheet->setCellValue('C' . $row, $details['admin_approval'] ?? 'N/A');
+            $sheet->setCellValue('D' . $row, $details['financial_approval'] ?? 'N/A');
+
+            $row++;
+        }
+
+        $this->setColumnWidths($sheet, [20, 20, 40, 20]);
     }
 
 

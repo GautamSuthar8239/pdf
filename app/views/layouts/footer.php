@@ -36,25 +36,29 @@
 
 <!-- Top Alert Card -->
 <div id="topAlert" class="position-fixed start-50 translate-middle-x d-none user-select-none"
-    style="top: 20; z-index: 9999; max-width: 600px; width: 90%;">
-    <div class="alert rounded-4 border-0 text-center d-flex flex-column align-items-center p-4 pb-2 mb-0 animate-slide-middle">
-        <div class="alert-icon-wrapper mb-3 d-flex align-items-center justify-content-center rounded-circle">
-            <i id="topAlertIcon" class="material-symbols-rounded text-6xl">info</i>
+    style="top: 20; z-index: 9999; max-width: 550px; width: 90%;">
+    <div class="alert rounded-4 border-0 text-center d-flex flex-column align-items-center p-3 pb-2 mb-0 animate-slide-middle">
+        <div class="alert-icon-wrapper mb-2 d-flex align-items-center justify-content-center rounded-circle">
+            <i id="topAlertIcon" class="material-symbols-rounded text-5xl">info</i>
         </div>
 
-        <span id="topAlertMessage" class="fw-semibold fs-6 mb-2 d-flex align-items-center gap-2">Message goes here</span>
+        <div id="topAlertMessage" class="fw-semibold fs-6 mb-1 text-center">
+            Message goes here.
+        </div>
 
-        <div id="alertDivider" class="w-100 my-3 border-top border-light opacity-25"></div>
+        <div id="alertDivider" class="w-100 my-1 border-top border-light opacity-25"></div>
 
-        <div id="topAlertActions" class="d-none w-100">
+        <div id="topAlertActions" class="d-none w-100 mt-1">
             <button id="alertConfirmBtn" class="btn btn-light shadow-none btn-sm px-3 me-2 mb-0">Yes</button>
             <button id="alertCancelBtn" class="btn btn-outline-light btn-sm px-3 mb-0">Cancel</button>
         </div>
     </div>
 </div>
 
-
+<script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
 <script type="text/javascript" defer src="<?= ROOT; ?>/assets/js/main.js"></script>
+<script src="<?= ROOT; ?>/assets/js/common.js"></script>
+<script src="<?= ROOT; ?>/assets/js/headline.js"></script>
 <script src="<?= ROOT; ?>/assets/js/core/popper.min.js"></script>
 <script src="<?= ROOT; ?>/assets/js/core/bootstrap.min.js"></script>
 <script src="<?= ROOT; ?>/assets/js/plugins/perfect-scrollbar.min.js"></script>

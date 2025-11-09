@@ -1,202 +1,100 @@
-// $(document).ready(function () {
-//     const $fileInput = $('#pdfFiles');
-//     const $fileLabel = $('#fileLabel');
-//     const $fileList = $('#fileList');
-//     const $submitBtn = $('#submitBtn');
-//     const $uploadForm = $('#uploadForm');
-//     const fileCount = $('#fileCount');
+const CommonCheckboxUtils = {
+    getSelected: ($checkboxes, useDataAttr = false) =>
+        $checkboxes.filter(":checked").map((_, el) =>
+            useDataAttr ? $(el).data("id") : $(el).val()
+        ).get(),
 
-//     // === Drag & Drop Events ===
-//     $fileLabel.on('dragover', function (e) {
-//         e.preventDefault();
-//         $(this).addClass('dragover');
-//     });
+    syncSelectAll: ($checkboxes, $selectAll) => {
+        $selectAll.prop("checked", $checkboxes.length === $checkboxes.filter(":checked").length);
+    },
 
-//     $fileLabel.on('dragleave', function () {
-//         $(this).removeClass('dragover');
-//     });
+    updateSelectionUI: ($container, $countEl, selectedCount) => {
+        $countEl.text(selectedCount);
+        $container
+            .toggleClass("d-none", selectedCount === 0)
+            .toggleClass("d-flex justify-content-between", selectedCount > 0);
+    },
 
-//     $fileLabel.on('drop', function (e) {
-//         e.preventDefault();
-//         $(this).removeClass('dragover');
-//         $fileInput[0].files = e.originalEvent.dataTransfer.files;
-//         updateFileList();
-//     });
+    reloadPage: (timeout = 1500, redirectUrl = null) => {
+        setTimeout(() => {
+            if (redirectUrl) location.href = redirectUrl;
+            else location.reload();
+        }, timeout);
+    },
 
-//     // === File Input Change ===
-//     $fileInput.on('change', updateFileList);
+    redirectTo: (url, timeout = 1000) => {
+        setTimeout(() => {
+            location.href = url;
+        }, timeout);
+    },
 
-//     // === Update File List ===
-//     function updateFileList() {
-//         const files = $fileInput[0].files;
-//         $fileList.empty().removeClass('active');
+    // robust init
+    init: function (selectAllSelector, itemSelector, onChangeCallback = null) {
+        const $selectAll = $(selectAllSelector);
+        if (!$selectAll.length) return;
 
-//         if (!files.length) {
-//             showTopAlert("Please select at least one PDF file to continue.", "warning");
-//             return;
-//         };
+        $selectAll.on("change", function () {
+            const checked = this.checked;
+            const $checkboxes = $(itemSelector);
+            $checkboxes.prop("checked", checked).trigger('change.selectall');
+            if (onChangeCallback) onChangeCallback($checkboxes);
+        });
 
-//         // Validate PDFs only
-//         const invalidFiles = Array.from(files).some(f => f.type !== 'application/pdf');
-//         if (invalidFiles) {
-//             showTopAlert("Only PDF files are allowed. Please remove non-PDF files.", "error");
-//             $fileInput.val('');
-//             return;
-//         }
+        $(document).on("change", itemSelector, function (e) {
+            const $checkboxes = $(itemSelector);
+            $selectAll.prop("checked", $checkboxes.length > 0 && $checkboxes.filter(":checked").length === $checkboxes.length);
+            if (onChangeCallback) onChangeCallback($checkboxes);
+        });
 
-//         // Create file items dynamically
-//         $.each(files, function (i, file) {
-//             const $item = $(`
-//                 <div class="file-item d-flex justify-content-between align-items-center">
-//                     <span class="file-item-name">
-//                         <i class="material-icons" style="vertical-align: middle; font-size: 16px; margin-right: 5px;">description</i>
-//                         ${file.name}
-//                     </span>
-//                     <span class="file-size">${(file.size / 1024).toFixed(1)} KB</span>
-//                 </div>
-//             `);
-//             $fileList.append($item);
-//         });
-
-//         // Update file count
-//         fileCount.text('(' + files.length + ')');
-//     }
-
-//     // === Form Submit ===
-//     $uploadForm.on('submit', function (e) {
-//         if (!$fileInput[0].files.length) {
-//             e.preventDefault();
-//             showTopAlert("Please select at least one PDF file to continue.", "warning");
-//             return;
-//         }
-
-//         $submitBtn.prop('disabled', true).html(`
-//             <i class="material-icons" style="vertical-align: middle; font-size: 18px; animation: spin 1s linear infinite;">sync</i> Processing...
-//         `);
-//     });
-
-//     $("#pdfFiles").on("change", async function () {
-//         let files = this.files;
-//         if (!files.length) return;
-
-//         let allData = await processPdfFilesJQ(files);
-//         console.log("Extracted data:", allData);
-//         // Create hidden form to POST data
-//         const form = document.createElement('form');
-//         form.method = 'POST';
-//         form.action = '/pdf/upload';
-
-//         // Add CSRF token if needed
-//         const csrfInput = document.createElement('input');
-//         csrfInput.type = 'hidden';
-//         csrfInput.name = '_token';
-//         csrfInput.value = document.querySelector('meta[name="csrf-token"]')?.content;
-//         form.appendChild(csrfInput);
-
-//         // Add data
-//         const dataInput = document.createElement('input');
-//         dataInput.type = 'hidden';
-//         dataInput.name = 'allData';
-//         dataInput.value = JSON.stringify(allData);
-//         form.appendChild(dataInput);
-
-//         document.body.appendChild(form);
-//         form.submit(); // Submits and redirects automatically
-//     });
-// });
-
-
-// async function processPdfFilesJQ(files) {
-//     let data = []; // same as PHP $allData
-//     let file_names = [];
-
-//     for (let i = 0; i < files.length; i++) {
-//         let file = files[i];
-
-//         // Extract full text via PDF.js
-//         let text = await extractPdfText(file);
-
-//         file_names.push(file.name);
-
-//         // // Push final array (PHP → JS identical)
-//         data.push({ file_name: file.name, raw_text: text });
-//     }
-
-//     result = {
-//         allData: data,
-//         file_names: file_names
-//     };
-
-//     return {
-//         result: result
-//     }
-// }
+        // initial sync
+        const $initial = $(itemSelector);
+        $selectAll.prop("checked", $initial.length > 0 && $initial.filter(":checked").length === $initial.length);
+        if (onChangeCallback) onChangeCallback($initial);
+    }
+};
 
 $(document).ready(function () {
 
-    const msgs = [
-        "Automation saves hours — keep going!",
-        "Your work builds real impact.",
-        "Small progress daily = big results.",
-        "Smart tools create smart outcomes."
-    ];
+    $(document).on('hide.bs.modal', '.modal', function () {
+        document.activeElement?.blur();
+    });
+    // ============================================================
+    // 🧩 CUSTOM SELECT DROPDOWN
+    // ============================================================
+    $(document).on("click", ".custom-select__trigger", function (e) {
+        e.stopPropagation();
+        const $select = $(this).closest(".custom-select");
+        $(".custom-select.open").not($select).removeClass("open");
+        $select.toggleClass("open");
+    });
 
-    let currentMsgIndex = 0;
-    let charIndex = 0;
-    let isTyping = true;
-    const bannerText = document.getElementById('bannerText');
+    $(document).on("click", ".custom-select__option", function (e) {
+        e.stopPropagation();
+        const $option = $(this);
+        const $select = $option.closest(".custom-select");
+        const text = $.trim($option.text());
+        const value = $option.data("value");
 
-    function typeCharacter() {
-        if (!isTyping) return;
+        $select.find(".custom-select__option").removeClass("selected");
+        $option.addClass("selected");
+        $select.find(".custom-select__selected").text(text);
+        $select.removeClass("open");
 
-        const currentMsg = msgs[currentMsgIndex];
+        $select.trigger("customSelect:change", { value, text, select: $select });
+    });
 
-        if (charIndex <= currentMsg.length) {
-            bannerText.textContent = currentMsg.substring(0, charIndex);
-            bannerText.className = 'typing cursor';
-            charIndex++;
-            setTimeout(typeCharacter, 60);
-        } else {
-            // Typing complete - remove cursor
-            bannerText.classList.remove('cursor');
+    $(document).on("click", function () {
+        $(".custom-select.open").removeClass("open");
+    });
 
-            // Wait a moment, then slide left
-            setTimeout(() => {
-                slideLeftAndNext();
-            }, 1500);
-        }
-    }
-
-    function slideLeftAndNext() {
-        isTyping = false;
-        const currentMsg = msgs[currentMsgIndex];
-        bannerText.textContent = currentMsg;
-        bannerText.classList.remove('cursor');
-        bannerText.classList.add('slide-left');
-
-        // After slide animation completes, bring same text from right
-        setTimeout(() => {
-            bannerText.className = 'slide-from-right';
-
-            // After slide-in completes, move to next message and start typing
-            setTimeout(() => {
-                currentMsgIndex = (currentMsgIndex + 1) % msgs.length;
-                charIndex = 0;
-                bannerText.textContent = '';
-                bannerText.className = '';
-                isTyping = true;
-                typeCharacter();
-            }, 4000);
-
-        }, 3500);
-    }
-
-    // Start the animation
-    typeCharacter();
+    $(document).on("keydown", function (e) {
+        if (e.key === "Escape") $(".custom-select.open").removeClass("open");
+    });
 
     const $fileInput = $('#pdfFiles');
     const $fileLabel = $('#fileLabel');
     const $fileList = $('#fileList');
+    const $fileListCard = $('#fileListCard');
     const $submitBtn = $('#submitBtn');
     const $uploadForm = $('#uploadForm');
     const fileCount = $('#fileCount');
@@ -225,6 +123,8 @@ $(document).ready(function () {
 
     // === Update File List ===
     function updateFileList() {
+        $("#fileListCol").removeClass("d-none");
+        $("#fileListCard").removeClass("d-none");
         const files = $fileInput[0].files;
         $fileList.empty().removeClass('active');
 
@@ -258,13 +158,97 @@ $(document).ready(function () {
             $fileList.append($item);
         });
 
-        // Update file count
-        // fileCount.text('(' + files.length + ')');
         fileCount.text(`(${files.length} files — ${formatBytes(totalSize(files))})`);
 
         // Extract PDF data in background
         extractPdfData(files);
     }
+    function formatSize(bytes) {
+        if (bytes < 1024) return bytes + " B";
+        if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(1) + " KB";
+        return (bytes / (1024 * 1024)).toFixed(1) + " MB";
+    }
+
+    function renderDuplicateSummary(summary) {
+        const $card = $("#duplicateSummaryCard");
+        const $duplicateList = $("#duplicateSummaryBody #duplicateList");
+        const $count = $("#duplicateCount");
+
+        $duplicateList.empty();
+
+        if (!summary) {
+            console.error("summary is undefined:", summary);
+            return;
+        }
+
+        // ✅ summary keys must match backend
+        const nameOnly = summary.name_only || [];
+        const contentOnly = summary.content_only || [];
+        const fullDup = summary.full_duplicates || [];
+
+        const totalDuplicates =
+            nameOnly.length +
+            contentOnly.length +
+            fullDup.length;
+
+        $count.text(`(${totalDuplicates}) files.`);
+
+        if (totalDuplicates === 0) return;
+
+        let sections = [];
+
+        const sectionCard = (icon, title, tooltip, list) => `
+        <div class="file-item d-flex flex-column">
+            <h6 class="d-flex align-items-center justify-content-between w-100 mb-0">
+                <span class="d-flex align-items-center gap-2" title="${tooltip}">
+                    <i class="material-symbols-rounded">${icon}</i> ${title}
+                </span>
+                <span class="text-sm">${list.length}</span>
+            </h6>
+
+            ${list.map((f, i) => `
+                <span class="ms-3 d-flex align-items-center justify-content-between" style="font-size: 12px;">
+                    <span>${i + 1}. ${f.duplicate_of}</span>
+                    <span>(${formatSize(f.size_bytes)})</span>
+                </span>
+            `).join("")}
+        </div>
+    `;
+
+        if (nameOnly.length > 0) {
+            sections.push(sectionCard(
+                "badge",
+                "By Name",
+                "Duplicate By Name Only",
+                nameOnly
+            ));
+        }
+
+        if (contentOnly.length > 0) {
+            sections.push(sectionCard(
+                "content_copy",
+                "By Content",
+                "Duplicate By Content Only",
+                contentOnly
+            ));
+        }
+
+        if (fullDup.length > 0) {
+            sections.push(sectionCard(
+                "library_books",
+                "Duplicate File",
+                "Fully Duplicate (Name + Content)",
+                fullDup
+            ));
+        }
+
+        $duplicateList.html(sections.join(""));
+
+        $card.removeClass("d-none");
+    }
+
+
+
 
     function totalSize(files) {
         let size = 0;
@@ -280,17 +264,29 @@ $(document).ready(function () {
 
         try {
             extractedData = await processPdfFilesJQ(files);
+
+            // ✅ Render duplicate summary
+
+            renderDuplicateSummary(extractedData.summary);
+
             $submitBtn.prop('disabled', false).html(`
-                <i class="material-symbols-outlined" style="vertical-align: middle; font-size: 18px;">send</i>Fetch Data
+                <i class="material-symbols-outlined" style="vertical-align: middle; font-size: 18px;">send</i>Fetch & View Data
                 `);
+            showTopAlert("PDF data extracted successfully.", "success");
         } catch (error) {
             console.error('PDF extraction failed:', error);
             showTopAlert("Failed to extract PDF data. Please try again.", "error");
             $submitBtn.prop('disabled', false).html(`
-                <i class="material-symbols-outlined " style="vertical-align: middle; font-size: 18px;">send</i>Fetch Data
+                <i class="material-symbols-outlined " style="vertical-align: middle; font-size: 18px;">send</i>Fetch & View Data
                 `);
         }
     }
+
+    CommonCheckboxUtils.init('#selectAllData', '.data-filter:not(:disabled)', function ($checkboxes) {
+
+        const selectedIds = CommonCheckboxUtils.getSelected($checkboxes);
+        console.log("📧 Selected campaigns:", selectedIds);
+    });
 
     // === Form Submit (on button click) ===
     $uploadForm.on('submit', function (e) {
@@ -317,6 +313,15 @@ $(document).ready(function () {
         form.method = 'POST';
         form.action = '/pdf/upload';
 
+        // Add selected filters
+        const selectedFilters = CommonCheckboxUtils.getSelected($('.data-filter:not(:disabled)'));
+        const filterInput = document.createElement('input');
+        filterInput.type = 'hidden';
+        filterInput.name = 'filters';
+        filterInput.value = JSON.stringify(selectedFilters);
+        form.appendChild(filterInput);
+
+
         // Add CSRF token
         const csrfInput = document.createElement('input');
         csrfInput.type = 'hidden';
@@ -333,74 +338,172 @@ $(document).ready(function () {
 
         document.body.appendChild(form);
         form.submit();
-        console.log("extractedData: ", extractedData);
+        // console.log("extractedData: ", extractedData);
+    });
+
+
+    // ✅ Free View
+    $("#freeViewBtn").on("click", function () {
+        $(this).addClass("active");
+        $("#scrollViewBtn").removeClass("active");
+
+        $("#detailsFreeView").removeClass("d-none");
+        $("#detailsScrollView").addClass("d-none");
+    });
+
+    // ✅ Scroll View
+    $("#scrollViewBtn").on("click", function () {
+        $(this).addClass("active");
+        $("#freeViewBtn").removeClass("active");
+
+        $("#detailsFreeView").addClass("d-none");
+        $("#detailsScrollView").removeClass("d-none");
+    });
+
+
+    function updateToggleVisibility() {
+        let activeTab = $("#resultTabs .nav-link.active").attr("data-bs-target");
+
+        // Hide all badges first
+        $("#duplicatesBadge, #sellerBadge, #serviceProviderBadge, #detailsToggleBtns, #combinedBadge").addClass("d-none");
+
+        switch (activeTab) {
+            case "#duplicates-tab":
+                $("#duplicatesBadge").removeClass("d-none");
+                break;
+
+            case "#seller":
+                $("#sellerBadge").removeClass("d-none");
+                break;
+            case "#combined":
+                $("#combinedBadge").removeClass("d-none");
+                break;
+
+            case "#service-provider":
+                $("#serviceProviderBadge").removeClass("d-none");
+                break;
+
+            case "#details":
+                $("#combinedBadge").removeClass("d-none");
+                $("#detailsToggleBtns").removeClass("d-none");
+                break;
+        }
+    }
+
+
+    // Fire once on load
+    updateToggleVisibility();
+
+    // Fire whenever a tab changes
+    $('#resultTabs button[data-bs-toggle="tab"]').on('shown.bs.tab', function () {
+        updateToggleVisibility();
     });
 });
 
-// async function processPdfFilesJQ(files) {
-//     let data = [];
-//     let file_names = [];
 
-//     for (let i = 0; i < files.length; i++) {
-//         let file = files[i];
-//         let text = await extractPdfText(file);
-//         file_names.push(file.name);
-//         data.push({ file_name: file.name, raw_text: text });
-//     }
 
-//     return {
-//         allData: data,
-//         file_names: file_names
-//     };
-// }
+
+
+
+
 async function processPdfFilesJQ(files) {
-    let data = [];
-    let file_names = [];
-    let seenFiles = {};
-    let seenContent = {};
+    let allData = [];        // ✅ unique only
+    let duplicates = [];     // ✅ all duplicates (full objects)
+
+    let nameMap = {};
+    let contentMap = {};
+
+    let summaryNameOnly = [];
+    let summaryContentOnly = [];
+    let summaryFullDuplicates = [];
+
     let totalFileSize = 0;
 
     for (let file of files) {
         let baseName = normalizeFileName(file.name);
-
-        // Always add original size
         totalFileSize += file.size;
 
-        if (seenFiles[baseName]) {
-            console.warn(`Skipping duplicate file: ${file.name}`);
-            continue;
-        }
-
-        seenFiles[baseName] = true;
-
         const text = await extractPdfText(file);
-
         const contentKey = text.replace(/\s+/g, "").toLowerCase();
 
-        if (seenContent[contentKey]) {
-            console.warn(`Skipping duplicate content from: ${file.name}`);
-            continue;
-        }
+        let nameMatch = nameMap[baseName];
+        let contentMatch = contentMap[contentKey];
 
-        seenContent[contentKey] = true;
+        let duplicate_reason = null;
+        let duplicate_of = null;
+        let isDuplicate = false;
 
-        data.push({
+        // ✅ Full object for both unique & duplicate
+        const fileObj = {
             file_name: file.name,
             base_name: baseName,
             raw_text: text,
-            size_bytes: file.size
-        });
+            size_bytes: file.size,
+            duplicate_reason: null,
+            duplicate_of: null
+        };
 
-        file_names.push(file.name);
+        // ✅ FULL DUPLICATE
+        if (nameMatch && contentMatch && nameMatch === contentMatch) {
+            duplicate_reason = "full_duplicate";
+            duplicate_of = nameMatch;
+            isDuplicate = true;
+
+            fileObj.duplicate_reason = duplicate_reason;
+            fileObj.duplicate_of = duplicate_of;
+
+            duplicates.push(fileObj);
+            summaryFullDuplicates.push(fileObj);
+
+            // ✅ NAME DUPLICATE ONLY
+        } else if (nameMatch && !contentMatch) {
+            duplicate_reason = "duplicate_name_only";
+            duplicate_of = nameMatch;
+            isDuplicate = true;
+
+            fileObj.duplicate_reason = duplicate_reason;
+            fileObj.duplicate_of = duplicate_of;
+
+            duplicates.push(fileObj);
+            summaryNameOnly.push(fileObj);
+
+            // ✅ CONTENT DUPLICATE ONLY
+        } else if (!nameMatch && contentMatch) {
+            duplicate_reason = "duplicate_content_only";
+            duplicate_of = contentMatch;
+            isDuplicate = true;
+
+            fileObj.duplicate_reason = duplicate_reason;
+            fileObj.duplicate_of = duplicate_of;
+
+            duplicates.push(fileObj);
+            summaryContentOnly.push(fileObj);
+
+            // ✅ UNIQUE
+        } else {
+            nameMap[baseName] = file.name;
+            contentMap[contentKey] = file.name;
+
+            allData.push(fileObj);
+        }
     }
 
     return {
-        allData: data,
-        file_names,
+        allData,           // ✅ unique files only
+        duplicates,        // ✅ all duplicates with full information
         total_size_bytes: totalFileSize,
-        total_size_readable: formatBytes(totalFileSize)
+        total_size_readable: formatBytes(totalFileSize),
+
+        // ✅ duplicate categories if you still need them in UI
+        summary: {
+            name_only: summaryNameOnly,
+            content_only: summaryContentOnly,
+            full_duplicates: summaryFullDuplicates
+        }
     };
 }
+
+
 
 function formatBytes(bytes) {
     const units = ['Bytes', 'KB', 'MB', 'GB'];

@@ -2,22 +2,54 @@
 
 class PdfModel
 {
+    public function getSectionToFieldMap()
+    {
+        return [
+            'seller'        => 'seller_details',
+            'service'       => 'service_provider_details',
+            'contract'      => 'contract_details',
+            'buyer'         => 'buyer_details',
+            'consignee'     => 'consignee_details',
+            'organisation'  => 'organisation_details',
+            'financial'     => 'financial_approval',
+            'paying'        => 'paying_authority_details',
+            'product'       => 'product_details',
+        ];
+    }
+
+    public function getAvailableSections()
+    {
+        return [
+            'seller'        => 'Seller Details',
+            'service'       => 'Service Provider Details',
+            'contract'      => 'Contract Details',
+            // 'raw_text'      => 'Raw Extracted Text',
+            'buyer'         => 'Buyer Details',
+            'consignee'     => 'Consignee Details',
+            'organisation'  => 'Organisation Details',
+            'financial'     => 'Financial Approval',
+            'paying'        => 'Paying Authority',
+            'product'       => 'Product Details',
+        ];
+    }
+
     /**
      * Main extraction method - extracts all data from PDF text
      */
     public function extractData($text)
     {
         return [
-            // 'file_type' => $this->detectFileType($text),
+            'file_type' => $this->detectFileType($text),
             // 'paying_authority_details' => $this->extractPayingAuthority($text),
             // 'buyer_details' => $this->extractBuyerDetails($text),
             // 'consignee_details' => $this->extractConsigneeDetails($text),
             // 'organisation_details' => $this->extractOrganisationDetails($text),
             // 'financial_approval' => $this->extractFinancialApproval($text),
-            'seller_details' => $this->extractSellerDetails($text),
+            // 'seller_details' => $this->extractSellerDetails($text),
             // 'contract_details' => $this->extractContractDetails($text),
-            'service_provider_details' => $this->extractServiceProviderDetails($text),
-            'raw_text' => $text
+            // 'service_provider_details' => $this->extractServiceProviderDetails($text),
+            'raw_text' => $text,
+            'product_details' => $this->extractProductDetails($text),
 
         ];
     }
@@ -239,8 +271,6 @@ class PdfModel
 
         // Administrative Approval
         if (preg_match('/Administrative Approval.*?:\s*([^\"व|!व|#व|]+)/iu',  $block, $m)) {
-
-            // if (preg_match('/Administrative Approval\s*[:|]*\s*(.*?)(?=व|Financial|$)/iu', $block, $m)) {
             $details['admin_approval'] = trim($m[1]);
         }
 
@@ -305,17 +335,17 @@ class PdfModel
         $block = $this->cleanText($match[1]);
         $details = [];
 
-        // if (preg_match('/Designation\s*[:|]*\s*(.*?)(?=\s*(Email|ईमेल|Contact|संपक|GSTIN|जीएसट|Address|पता|$))/isu', $block, $m)) {
-        //     $details['designation'] = trim($m[1]);
-        // }
+        if (preg_match('/Designation\s*[:|]*\s*(.*?)(?=\s*(Email|ईमेल|Contact|संपक|GSTIN|जीएसट|Address|पता|$))/isu', $block, $m)) {
+            $details['designation'] = trim($m[1]);
+        }
 
-        // if (preg_match('/Email ID\s*[:|]*\s*([a-z0-9._%+-]+@[a-z0-9.-]+\.[a-z]{2,})/i', $block, $m)) {
-        //     $details['email'] = strtolower(trim($m[1]));
-        // }
+        if (preg_match('/Email ID\s*[:|]*\s*([a-z0-9._%+-]+@[a-z0-9.-]+\.[a-z]{2,})/i', $block, $m)) {
+            $details['email'] = strtolower(trim($m[1]));
+        }
 
-        // if (preg_match('/Contact\s*[:|]*\s*([0-9+\-\s()]+)/i', $block, $m)) {
-        //     $details['contact'] = preg_replace('/\s+/', '', trim($m[1]));
-        // }
+        if (preg_match('/Contact\s*[:|]*\s*([0-9+\-\s()]+)/i', $block, $m)) {
+            $details['contact'] = preg_replace('/\s+/', '', trim($m[1]));
+        }
 
         if (preg_match('/GSTIN\s*[:|]*\s*(.*?)(?=\s*(hp|acer|dell|lenovo|ARU|Zenix|Product|Item|Qty|Quantity|[0-9]{1,2}-[A-Za-z]{3}-[0-9]{4}|पता|Address|$))/is', $block, $m)) {
             $details['gstin'] = $this->cleanGstin($m[1]);
@@ -368,6 +398,88 @@ class PdfModel
         return $details;
     }
 
+    private function extractProductDetails($text)
+    {
+        $details = [];
+
+        // ✅ Match Product Details block
+        if (!preg_match('/Product Details(.*?)(?=Consignee|Product Specification|Specification|Terms and Conditions|$)/is', $text, $section)) {
+            return $details;
+        }
+
+        $block = $this->cleanBlock($section[1]);
+
+        // ---------- AGGRESSIVE CLEANUP ----------
+        // Remove duplicate English labels (Brand : Brand :)
+        $block = preg_replace('/\b([A-Za-z ]+)\s*:\s*\1\s*:/i', '$1 :', $block);
+
+        // Remove Hindi/Devanagari script characters that appear after values
+        $block = preg_replace('/[\x{0900}-\x{097F}]+/u', '', $block);
+
+        // Remove multiple spaces
+        $block = preg_replace('/\s+/', ' ', $block);
+
+        // ✅ Enhanced extraction with strict stoppers
+        $extract = function ($label, $block) {
+            $stoppers = [
+                'Brand',
+                'Brand Type',
+                'Catalogue Status',
+                'Selling As',
+                'Category',
+                'Category Name',
+                'Model',
+                'HSN',
+                'Code',
+                'pieces',
+                'Total Order Value',
+                'Product Name',
+                'Consignee'
+            ];
+
+            // Match label, capture until next stopper OR newline/colon pattern
+            $pattern = '/' . preg_quote($label, '/') . '\s*[:|]\s*(.*?)(?=\s*\b(' . implode('|', $stoppers) . ')\b\s*[:|]|$)/is';
+
+            if (preg_match($pattern, $block, $m)) {
+                $value = trim($m[1]);
+                // Remove trailing colons and clean
+                $value = rtrim($value, ':');
+                return preg_replace('/\s+/', ' ', $value);
+            }
+
+            return '';
+        };
+
+        // ✅ Extract fields
+        $details['product_name']     = $extract('Product Name', $block);
+        $details['brand']            = $extract('Brand', $block);
+        $details['brand_type']       = $extract('Brand Type', $block);
+        $details['catalogue_status'] = $extract('Catalogue Status', $block);
+        $details['selling_as']       = $extract('Selling As', $block);
+        $details['category']         = $extract('Category Name', $block);
+        $details['model']            = $extract('Model', $block);
+        $details['hsn_code']         = $extract('HSN Code', $block);
+
+        // ✅ Quantity
+        if (preg_match('/\b(\d+)\s*(?:pieces?|pcs?)\b/i', $block, $m)) {
+            $details['quantity'] = $m[1];
+        }
+
+        // ✅ Unit Price (look for pattern: quantity pieces PRICE)
+        if (preg_match('/\d+\s*pieces?\s+(\d[\d,]*)/i', $block, $m)) {
+            $details['unit_price'] = str_replace(',', '', $m[1]);
+        }
+
+        // ✅ Total Order Value
+        if (preg_match('/Total\s+Order\s+Value[:\s]*(\d[\d,]*)/i', $block, $m)) {
+            $details['total_value'] = str_replace(',', '', $m[1]);
+        }
+
+        return $details;
+    }
+
+
+
     /**
      * Get combined seller and service provider details
      */
@@ -389,6 +501,8 @@ class PdfModel
 
         return $combined;
     }
+
+
 
     // ========== HELPER METHODS ==========
 

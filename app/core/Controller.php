@@ -21,6 +21,12 @@ trait Controller
         if (!isset($data['title'])) {
             $data['title'] = $this->title;
         }
+        // ✅ Inject global settings before extracting $data
+        $settingsModel = new Setting();
+        $headlineStatus = $settingsModel->first(['key' => 'headline_status']);
+
+        // Default = on
+        $data['headlineEnabled'] = $headlineStatus['value'] ?? 'on';
 
         if (!empty($data)) {
             extract($data);

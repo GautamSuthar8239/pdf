@@ -3,7 +3,10 @@
 // Debug settings
 define('DEBUG', true);
 define('ROOT', 'http://localhost:4002'); // Base URL for local development
-define("DirROOT", __DIR__ . "/..");   // or correct absolute path
+define("DirROOT", __DIR__);   // or correct absolute path
+
+
+define('LOCK_KEY', "ProBid");
 
 // Upload settings
 define('UPLOAD_DIR', __DIR__ . '/uploads/'); // Use absolute path

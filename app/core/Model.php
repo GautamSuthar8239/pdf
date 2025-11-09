@@ -4,13 +4,11 @@ trait Model
 {
     use Database;
 
-    protected int $limit = 10;
+    protected int $limit = 100;
     protected int $offset = 0;
     protected string $order_type = 'asc';
     protected string $order_column = 'id';
     protected array $allowedOrderTypes = ['asc', 'desc'];
-    // protected array $allowedOrderColumns = ['id'];
-    // protected array $allowedColumns = [];
 
     public array $errors = [];
 
