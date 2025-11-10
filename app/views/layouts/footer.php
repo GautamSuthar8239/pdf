@@ -1,5 +1,61 @@
 </div>
 </main>
+<?php
+// ✅ Load version (VERSION file in htdocs)
+$version = '0.3.0';
+if (file_exists(__DIR__ . "/VERSION")) {
+    $version = trim(file_get_contents(__DIR__ . "/VERSION"));
+}
+?>
+
+<?php if (!isset($showFooter) || $showFooter): ?>
+
+    <footer class="footer bottom-0 py-2 w-100">
+        <div class="container">
+            <div class="row align-items-center justify-content-between">
+
+                <!-- Left Side -->
+                <div class="col-12 col-md-8 my-auto">
+                    <div class="text-center text-md-start text-dark small">
+                        © <script>
+                            document.write(new Date().getFullYear())
+                        </script>
+                        <a href="https://probidconsultant.com" class="fw-bold text-dark" target="_blank">
+                            Probid Consultancy -
+                        </a>
+                        <!-- <span class="text-muted ms-1">v<?= $version ?></span>, -->
+                        Crafted with
+                        <i class="material-symbols-rounded text-danger mb-0" style="font-size:16px;">favorite</i>
+                        for a better web.
+                    </div>
+                </div>
+
+                <!-- Right Side -->
+                <div class="col-12 col-md-4 mt-1 mt-md-0 text-center text-md-end">
+                    <ul class="nav justify-content-center justify-content-md-end gap-2">
+                        <li class="nav-item">
+                            <a href="https://probidconsultant.com" class="nav-link px-2 text-dark" target="_blank">
+                                Probid Consultancy
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a href="/setDemoToast/about" class="nav-link px-2 text-dark">
+                                About Us
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <span class="text-muted text-sm">v<?= $version ?></span>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+<?php endif; ?>
+
+<!-- </main> -->
+
 
 <?php if ($toast = Flash::get('toast')): ?>
     <div class="toast-container-custom position-fixed bottom-0 end-0 p-3 user-select-none">
@@ -56,20 +112,20 @@
 </div>
 
 <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
-<script type="text/javascript" defer src="<?= ROOT; ?>/assets/js/main.js"></script>
-<script src="<?= ROOT; ?>/assets/js/common.js"></script>
-<script src="<?= ROOT; ?>/assets/js/headline.js"></script>
-<script src="<?= ROOT; ?>/assets/js/core/popper.min.js"></script>
-<script src="<?= ROOT; ?>/assets/js/core/bootstrap.min.js"></script>
-<script src="<?= ROOT; ?>/assets/js/plugins/perfect-scrollbar.min.js"></script>
-<script src="<?= ROOT; ?>/assets/js/plugins/smooth-scrollbar.min.js"></script>
+<script type="text/javascript" defer src="<?= ROOT; ?>/public/assets/js/main.js"></script>
+<script src="<?= ROOT; ?>/public/assets/js/common.js"></script>
+<script>
+    window.GLOBAL_HEADLINES = <?= json_encode($global_headlines ?? []) ?>;
+</script>
+<script defer  src="<?= ROOT; ?>/public/assets/js/headline.js"></script>
+<script src="<?= ROOT; ?>/public/assets/js/core/popper.min.js"></script>
+<script src="<?= ROOT; ?>/public/assets/js/core/bootstrap.min.js"></script>
+<script src="<?= ROOT; ?>/public/assets/js/plugins/perfect-scrollbar.min.js"></script>
+<script src="<?= ROOT; ?>/public/assets/js/plugins/smooth-scrollbar.min.js"></script>
 
 <script src=" https://cdnjs.cloudflare.com/ajax/libs/lottie-web/5.9.6/lottie.min.js"></script>
 
-<!-- Github buttons -->
-<!-- <script async defer src="https://buttons.github.io/buttons.js"></script> -->
-<!-- Control Center for Material Dashboard: parallax effects, scripts for the example pages etc -->
-<script src="<?= ROOT; ?>/assets/js/material-dashboard.min.js"></script>
+<script src="<?= ROOT; ?>/public/assets/js/material-dashboard.min.js"></script>
 </body>
 
 </html>

@@ -5,20 +5,19 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
     <title><?= $title ?? 'Probid' ?></title>
-    <link rel="icon" type="image/x-icon" href="<?= ROOT; ?>/assets/images/favicon.ico">
+    <link rel="icon" type="image/x-icon" href="<?= ROOT; ?>/public/assets/images/favicon.ico">
 
-    <link rel="icon" type="image/png" sizes="32x32" href="<?= ROOT; ?>/assets/images/favicon-32x32.png">
-    <link rel="icon" type="image/png" sizes="16x16" href="<?= ROOT; ?>/assets/images/favicon-16x16.png">
-    <link rel="apple-touch-icon" sizes="76x76" href="<?= ROOT; ?>/assets/images/apple-touch-icon.png">
+    <link rel="icon" type="image/png" sizes="32x32" href="<?= ROOT; ?>/public/assets/images/favicon-32x32.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="<?= ROOT; ?>/public/assets/images/favicon-16x16.png">
+    <link rel="apple-touch-icon" sizes="76x76" href="<?= ROOT; ?>/public/assets/images/apple-touch-icon.png">
 
     <link rel="stylesheet" type="text/css" href="https://fonts.googleapis.com/css?family=Inter:300,400,500,600,700,900" />
-    <!-- <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css"> -->
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded" />
     <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined" rel="stylesheet" />
     <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
 
-    <link id="pagestyle" href="<?= ROOT; ?>/assets/css/material-dashboard.css" rel="stylesheet" />
-    <link href="<?= ROOT; ?>/assets/css/styles.css" rel="stylesheet" />
+    <link id="pagestyle" href="<?= ROOT; ?>/public/assets/css/material-dashboard.css" rel="stylesheet" />
+    <link href="<?= ROOT; ?>/public/assets/css/styles.css" rel="stylesheet" />
 </head>
 
 <body class="bg-gray-100">

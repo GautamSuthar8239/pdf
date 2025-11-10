@@ -64,7 +64,7 @@
          <!-- Logo (Left) -->
          <a class="navbar-brand user-select-none" href="/" draggable="false"
              style="outline: none;">
-             <img class="img-fluid" src="<?= ROOT; ?>/assets/images/probid_image.png" alt="Probid Logo" draggable="false">
+             <img class="img-fluid" src="<?= ROOT; ?>/public/assets/images/probid_image.png" alt="Probid Logo" draggable="false">
          </a>
 
          <div class="animated-banner user-select-none 

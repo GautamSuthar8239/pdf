@@ -1,18 +1,18 @@
 $(document).ready(function () {
-    // ✅ Prevent multiple initializations
+
     if (window.bannerAnimationInitialized) return;
     window.bannerAnimationInitialized = true;
-    // =====================================================
-    //  Define ALL FUNCTIONS + VARIABLES (Always Available)
-    // =====================================================
 
+    // ✅ Declare all variables FIRST
     let msgs = [];
     let currentMsgIndex = 0;
     let charIndex = 0;
     let isAnimating = false;
-    const $bannerText = $('#bannerText');
     let cursorInterval;
 
+    const $bannerText = $('#bannerText');
+
+    // ✅ FUNCTIONS (safe now)
     function startCursor() {
         stopCursor();
         $bannerText.addClass('cursor');
@@ -49,10 +49,7 @@ $(document).ready(function () {
 
         if (charIndex === 0) {
             $bannerText.text('');
-            $bannerText.css({
-                left: '50%',
-                transform: 'translateX(-50%)'
-            });
+            $bannerText.css({ left: '50%', transform: 'translateX(-50%)' });
             startCursor();
         }
 
@@ -98,27 +95,16 @@ $(document).ready(function () {
         });
     }
 
-    // =====================================================
-    // ✅ CONDITIONAL: animation code only if banner ON
-    // =====================================================
-
-    if (!$(".animated-banner").hasClass("d-none")) {
-
-        $.ajax({
-            url: '/headline/list',
-            method: 'GET',
-            dataType: 'json',
-            success(res) {
-                msgs = (res.success && res.messages.length) ? res.messages : getFallbackMessages();
-                startAnimation();
-            },
-            error() {
-                msgs = getFallbackMessages();
-                startAnimation();
-            }
-        });
+    // ✅ NOW use GLOBAL_HEADLINES safely
+    if (window.GLOBAL_HEADLINES && window.GLOBAL_HEADLINES.length > 0) {
+        msgs = window.GLOBAL_HEADLINES;
+        startAnimation();
+        return;
     }
 
+    // ✅ Otherwise fallback or AJAX
+    msgs = getFallbackMessages();
+    startAnimation();
 });
 
 
@@ -288,8 +274,6 @@ $(document).ready(function () {
             $("#toggleLabel").text("Toggle Status Individually");
             $toggleBtn.data("mode", "toggle");
         }
-        const selectedIds = CommonCheckboxUtils.getSelected($checkboxes);
-        console.log("📧 Selected campaigns:", selectedIds);
     });
 
 
@@ -434,9 +418,6 @@ $(document).ready(function () {
 
         });
     });
-
-
-
 });
 
 

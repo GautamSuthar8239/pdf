@@ -37,40 +37,84 @@ class PdfController
         $filters = json_decode($_POST['filters'], true);
 
         $datas = $result['allData'];
-        $duplicates = $result['duplicates'];
-        $summary = $result['summary'];
+        // $duplicates = $result['duplicates'];
+        // $summary = $result['summary'];
 
         // show($result);       // Debug
         // show($filters);   // Debug
         // show($datas);        // Debug
         $model = new PdfModel();
-        $sectionMap = $model->getSectionToFieldMap();
+        // $sectionMap = $model->getSectionToFieldMap();
+
+        $unique = [];
+        $duplicates = [];
+        $allFiles = [];
 
         foreach ($datas as $item) {
 
             $extracted = $model->extractData($item['raw_text']);
 
-            // Add file info
+            // store file info inside extracted
             $extracted['file_name'] = $item['file_name'];
             $extracted['base_name'] = $item['base_name'];
 
-            // ✅ Remove unwanted sections
-            foreach ($sectionMap as $filterKey => $sectionName) {
+            $allFiles[] = $extracted;
 
-                // seller & service ALWAYS included
-                if ($filterKey === 'seller' || $filterKey === 'service') {
-                    continue;
-                }
+            // ✅ company name
+            $company = $extracted['seller_details']['company_name'] ?? $extracted['service_provider_details']['company_name'] ?? '';
 
-                // If deselected → remove
-                if (empty($filters[$filterKey])) {
-                    unset($extracted[$sectionName]);
-                }
+            // ✅ contact
+            $contact = $extracted['seller_details']['contact_number'] ?? $extracted['service_provider_details']['contact_number'] ?? null;
+            if (!$contact) continue;
+
+            // ✅ normalize
+            $cleanContact = preg_replace('/\D/', '', $contact);
+
+            // ✅ FIRST TIME → store unique and start duplicates list
+            if (!isset($unique[$cleanContact])) {
+
+                $unique[$cleanContact] = $extracted;
+
+                // ✅ duplicates group storing company name also
+                $duplicates[$cleanContact] = [
+                    [
+                        'file_name'   => $extracted['file_name'],
+                        'base_name'   => $extracted['base_name'],
+                        'company_name' => $company
+                    ]
+                ];
+            } else {
+
+                // ✅ duplicate file → add with file + company
+                $duplicates[$cleanContact][] = [
+                    'file_name'   => $extracted['file_name'],
+                    'base_name'   => $extracted['base_name'],
+                    'company_name' => $company
+                ];
             }
-
-            $allData[] = $extracted;
         }
+
+        // ✅ Unique sellers list for normal display
+        $allData = array_values($unique);
+
+        // ✅ Final formatted duplicates
+        $duplicatesClean = [];
+
+        foreach ($duplicates as $contact => $files) {
+
+            if (count($files) > 1) {
+
+                $duplicatesClean[] = [
+                    'contact'      => $contact,
+                    'company_name' => $files[0]['company_name'],  // same for all duplicates
+                    'files'        => $files
+                ];
+            }
+        }
+
         // show($allData);
+        // show($allFiles);
+        // show($duplicatesClean);
 
         // Generate Excel with multiple sheets
         $spreadsheet = new Spreadsheet();
@@ -113,8 +157,9 @@ class PdfController
         // Render result view
         $data = [
             'allData' => $allData,
-            'duplicates' => $duplicates,
-            'summary' => $summary,
+            'duplicates' => $duplicatesClean,
+            // 'summary' => $summary,
+            'allFiles' => $allFiles,
             'filters' => $filters,
             'excel_path' => '/pdf/downloadExcel', // new route for Excel download
             'title' => 'Extracted Data',

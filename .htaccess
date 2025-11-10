@@ -1,0 +1,24 @@
+# === Improved .htaccess ===
+Options -Indexes
+RewriteEngine On
+
+# --- Do not rewrite requests for existing files or directories
+RewriteCond %{REQUEST_FILENAME} -f [OR]
+RewriteCond %{REQUEST_FILENAME} -d
+RewriteRule ^ - [L]
+
+# --- Exclude common asset directories from rewriting (adjust names as needed)
+RewriteRule ^(assets|favicon\.ico|robots\.txt)(/.*)?$ - [L,NC]
+
+# --- Security: deny access to sensitive files directly
+<FilesMatch "(^composer\.|^\.env|^config\.php|^index2\.php)">
+  Require all denied
+</FilesMatch>
+
+# --- Rewrite everything else to index.php (clean URLs)
+RewriteRule ^(.*)$ index.php?url=$1 [QSA,L]
+
+# Set default file
+DirectoryIndex index.php
+php_value display_errors On
+php_value date.timezone Asia/Kolkata

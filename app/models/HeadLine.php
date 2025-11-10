@@ -1,6 +1,6 @@
 <?php
 
-class HeadLine
+class Headline
 {
     use Model;
 

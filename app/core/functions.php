@@ -14,10 +14,12 @@ function esc($str)
 
 function redirect($path)
 {
-    header("Location: " . ROOT . "/" . $path);
-    die;
-}
+    $root = rtrim(ROOT, '/');      // remove ending slash from ROOT
+    $path = ltrim($path, '/');     // remove starting slash from path
 
+    header("Location: {$root}/{$path}");
+    exit;
+}
 
 function encryptId(int $id): string
 {
@@ -143,33 +145,4 @@ function detectChanges($old, $new, $fieldsToCheck = [])
     }
 
     return $changes;
-}
-
-
-function uploadResume($file)
-{
-    $allowedTypes = ['application/pdf', 'application/msword', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'];
-    $maxSize = 5 * 1024 * 1024; // 5MB
-
-    if (!in_array($file['type'], $allowedTypes)) {
-        return false; // invalid file type
-    }
-
-    if ($file['size'] > $maxSize) {
-        return false; // file too large
-    }
-
-    $uploadDir = __DIR__ . '/../../public/uploads/resumes/';
-    if (!is_dir($uploadDir)) {
-        mkdir($uploadDir, 0755, true);
-    }
-
-    $fileName = time() . '_' . preg_replace('/[^a-zA-Z0-9_\.-]/', '', basename($file['name']));
-    $targetPath = $uploadDir . $fileName;
-
-    if (move_uploaded_file($file['tmp_name'], $targetPath)) {
-        return 'uploads/resumes/' . $fileName; // return relative path
-    }
-
-    return false;
 }

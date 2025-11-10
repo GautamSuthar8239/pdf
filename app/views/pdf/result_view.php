@@ -10,21 +10,36 @@
                             <i class="material-symbols-outlined">file_export</i>
                             Extraction Results
                         </h5>
+                        <?php
+                        // Check data presence
+                        $hasSeller = false;
+                        $hasService = false;
 
+                        foreach ($allData as $data) {
+                            if (!empty($data['seller_details'])) $hasSeller = true;
+                            if (!empty($data['service_provider_details'])) $hasService = true;
+                        }
+
+                        $hasAnyData = $hasSeller || $hasService;
+                        ?>
                         <div class="d-flex flex-wrap flex-md-nowrap gap-3 align-items-center justify-content-end">
-                            <div class="d-flex gap-2 flex-wrap">
-                                <a href="<?= esc($excel_path); ?>"
-                                    class="btn btn-outline-lavender d-flex align-items-center gap-2 mb-0 py-1 px-3"
-                                    download title="Download Excel File">
-                                    <i class="material-symbols-outlined">download</i>
-                                </a>
+                            <?php if ($hasSeller || $hasService): ?>
+                                <div class="d-flex gap-2 flex-wrap">
+                                    <!-- ✅ Show Download only when any valid data is present -->
+                                    <a href="<?= esc($excel_path); ?>"
+                                        class="btn btn-outline-lavender d-flex align-items-center gap-2 mb-0 py-1 px-3"
+                                        download title="Download Excel File">
+                                        <i class="material-symbols-outlined">download</i>
+                                    </a>
 
-                                <a href="/pdf"
-                                    class="btn btn-outline-lavender d-flex align-items-center gap-1 mb-0 py-1 px-3"
-                                    title="Back to Upload Page">
-                                    <i class="material-symbols-outlined">arrow_back</i>
-                                </a>
-                            </div>
+
+                                    <a href="/pdf"
+                                        class="btn btn-outline-lavender d-flex align-items-center gap-1 mb-0 py-1 px-3"
+                                        title="Back to Upload Page">
+                                        <i class="material-symbols-outlined">arrow_back</i>
+                                    </a>
+                                </div>
+                            <?php endif; ?>
 
                             <span class="text-white">|</span>
 
@@ -32,8 +47,7 @@
                             <div class="stat-item text-center">
                                 <div class="stat-number">
                                     <?php
-                                    $totalFiles = array_merge($allData, $duplicates);
-                                    echo count($totalFiles);
+                                    echo count($allFiles);
                                     ?>
                                 </div>
                                 <div class="stat-label">Files</div>
@@ -41,7 +55,7 @@
                             <span class="text-white">|</span>
                             <div class="stat-item text-center">
                                 <div class="stat-number">
-                                    <?= number_format(array_sum(array_map(fn($d) => strlen($d['raw_text']), $totalFiles))); ?>
+                                    <?= number_format(array_sum(array_map(fn($d) => strlen($d['raw_text']), $allFiles))); ?>
                                 </div>
                                 <div class="stat-label">Characters</div>
                             </div>
@@ -53,59 +67,66 @@
 
                 <!-- Body -->
                 <div class="card-body px-4 py-2">
-                    <?php
-                    // Check data presence
-                    $hasSeller = false;
-                    $hasService = false;
-
-                    foreach ($allData as $data) {
-                        if (!empty($data['seller_details'])) $hasSeller = true;
-                        if (!empty($data['service_provider_details'])) $hasService = true;
-                    }
-
-                    $hasAnyData = $hasSeller || $hasService;
-                    ?>
 
                     <?php if ($hasAnyData): ?>
                         <!-- Navigation Tabs -->
                         <div class="d-flex flex-wrap tabs-scroll-wrapper align-items-center justify-content-between mb-3 border-bottom">
                             <ul class="nav nav-tabs gap-1 border-0"
                                 id="resultTabs" role="tablist">
+                                <style>
+                                    .small-tab {
+                                        font-size: 13px !important;
+                                        padding: 4px 8px 4px 8px !important;
+                                        line-height: 1;
+                                    }
+
+                                    .small-tab i {
+                                        font-size: 16px !important;
+                                    }
+                                </style>
 
                                 <?php if ($hasSeller && $hasService): ?>
                                     <!-- Show Combined only if both present -->
                                     <li class="nav-item" role="presentation">
-
-                                        <button class="nav-link <?= $hasSeller && $hasService ? 'active' : '' ?> d-flex align-item-center justify-content-between gap-2 mb-0"
-                                            data-bs-toggle="tab" data-bs-target="#combined" type="button">
-                                            <i class="material-symbols-outlined mb-0">dashboard</i> Combined View
+                                        <button
+                                            class="nav-link <?= $hasSeller && $hasService ? 'active' : '' ?> d-flex align-item-center justify-content-between gap-1 mb-0"
+                                            data-bs-toggle="tab"
+                                            data-bs-target="#combined"
+                                            type="button">
+                                            <i class="material-symbols-outlined mb-0 text-lg">dashboard</i>
+                                            <span style="font-size:13px;">Combined View</span>
                                         </button>
                                     </li>
+
                                 <?php endif; ?>
 
                                 <?php if ($hasService): ?>
                                     <li class="nav-item" role="presentation">
-                                        <button class="nav-link <?= !$hasSeller && !$hasService ? '' : (!$hasSeller ? 'active' : '') ?> d-flex align-item-center justify-content-between gap-2 mb-0"
+                                        <button class="nav-link <?= !$hasSeller && !$hasService ? '' : (!$hasSeller ? 'active' : '') ?>  d-flex align-item-center justify-content-between gap-1 mb-0"
                                             data-bs-toggle="tab" data-bs-target="#service-provider" type="button">
-                                            <i class="material-symbols-outlined mb-0">home_repair_service</i> Service Providers
+                                            <i class="material-symbols-outlined mb-0 text-lg">home_repair_service</i>
+                                            <span style="font-size:13px;"> Service Providers</span>
                                         </button>
                                     </li>
                                 <?php endif; ?>
 
                                 <?php if ($hasSeller): ?>
                                     <li class="nav-item" role="presentation">
-                                        <button class="nav-link <?= (!$hasService && !$hasSeller) ? '' : (!$hasService ? 'active' : '') ?> d-flex align-item-center justify-content-between gap-2 mb-0"
+                                        <button class="nav-link <?= (!$hasService && !$hasSeller) ? '' : (!$hasService ? 'active' : '') ?> d-flex align-item-center justify-content-between gap-1 mb-0"
                                             data-bs-toggle="tab" data-bs-target="#seller" type="button">
-                                            <i class="material-symbols-outlined mb-0">real_estate_agent</i> Sellers
+                                            <!-- <i class="material-symbols-outlined mb-0">real_estate_agent</i> Sellers -->
+                                            <i class="material-symbols-outlined mb-0 text-lg">real_estate_agent</i>
+                                            <span style="font-size:13px;">Sellers</span>
                                         </button>
                                     </li>
                                 <?php endif; ?>
 
                                 <?php if (!empty($duplicates)): ?>
                                     <li class="nav-item" role="presentation">
-                                        <button class="nav-link d-flex align-item-center justify-content-between gap-2 mb-0"
+                                        <button class="nav-link d-flex align-item-center justify-content-between gap-1 mb-0"
                                             data-bs-toggle="tab" data-bs-target="#duplicates-tab" type="button">
-                                            <i class="material-symbols-outlined mb-0">file_copy</i> Duplicates
+                                            <i class="material-symbols-outlined mb-0 text-lg">file_copy</i>
+                                            <span style="font-size:13px;">Duplicates</span>
                                         </button>
                                     </li>
                                 <?php endif; ?>
@@ -116,6 +137,14 @@
                                 $detailSections = $model->getDetailSections();
                                 $filterMap      = $model->filterKeyMap();
                                 $iconMap        = $model->getIconMap();
+                                $uniqueCount = count($allData);
+                                $duplicateGroupCount = count($duplicates);
+
+                                // neglected files
+                                $neglectedCount = 0;
+                                foreach ($duplicates as $group) {
+                                    $neglectedCount += max(0, count($group['files']) - 1);
+                                }
 
                                 $activeFilters = array_filter($filters ?? [], fn($v) => $v == 1);
                                 ?>
@@ -147,10 +176,11 @@
                                     ?>
 
                                     <li class="nav-item">
-                                        <button class="nav-link d-flex align-item-center gap-2"
+                                        <button class="nav-link d-flex align-item-center justify-content-between gap-1 mb-0"
                                             data-bs-toggle="tab"
                                             data-bs-target="#<?= $sectionKey ?>">
-                                            <i class="material-symbols-outlined"><?= $icon ?></i> <?= $label ?>
+                                            <i class="material-symbols-outlined mb-0 text-lg"><?= $icon ?></i>
+                                            <span style="font-size:13px;"><?= $label ?></span>
                                         </button>
                                     </li>
 
@@ -161,15 +191,20 @@
                                 <li class="nav-item" role="presentation">
                                     <button class="nav-link d-flex align-item-center justify-content-between gap-2 mb-0"
                                         data-bs-toggle="tab" data-bs-target="#details" type="button">
-                                        <i class="material-symbols-outlined mb-0">list</i> All Details
+                                        <i class="material-symbols-outlined mb-0 text-lg">list</i>
+                                        <span style="font-size:13px;">All Details</span>
                                     </button>
                                 </li>
                             </ul>
 
                             <div class="d-flex gap-2 align-items-center justify-content-between  my-md-1 mt-0 mb-0">
-                                <div id="duplicatesBadge" class="d-flex justify-content-center align-items-center d-none mb-0">
+                                <div id="duplicatesBadge" class="d-flex justify-content-center align-items-center mb-0">
                                     <span class="badge bg-danger-subtle text-danger px-2 py-2">
-                                        <?= count($duplicates) ?> File(s)
+                                        <?= $neglectedCount ?> File(s) Ignored
+                                    </span>
+                                    <span class="text-warning mx-2 mb-0 pb-0">|</span>
+                                    <span class="badge bg-danger-subtle text-danger px-2 py-2">
+                                        <?= $duplicateGroupCount ?> Duplicate Groups
                                     </span>
                                     <span class="text-warning ms-2 mb-0 pb-0">|</span>
                                 </div>
@@ -231,54 +266,86 @@
                                         <table class="table tablehover align-middle sticky-table">
                                             <thead class="table-light text-uppercase small">
                                                 <tr>
-                                                    <th class="sticky-col col-1">Original File</th>
-                                                    <th>Reason</th>
-                                                    <th>Duplicate File</th>
-                                                    <th>Size</th>
+                                                    <th class="sticky-col col-1">Company Name</th>
+                                                    <th>Contact</th>
+                                                    <th>Duplicate Files</th>
+                                                    <!-- <th>Total Files</th> -->
                                                 </tr>
                                             </thead>
 
                                             <tbody>
-                                                <?php foreach ($duplicates as $i => $d): ?>
-                                                    <?php $reason = str_replace('_', ' ', $d['duplicate_reason']); ?>
+                                                <?php foreach ($duplicates as $dup): ?>
                                                     <tr>
 
-                                                        <td class="sticky-col col-1 fw-bold text-orange">
+                                                        <!-- ✅ company -->
+                                                        <td class="sticky-col fw-bold text-orange">
                                                             <div class="d-flex align-items-center gap-2">
-                                                                <i class="material-symbols-outlined text-muted" style="font-size: 18px;">description</i>
-                                                                <span class="fw-semibold"><?= esc($d['file_name']) ?></span>
+                                                                <i class="material-symbols-outlined text-muted" style="font-size:18px;">business</i>
+                                                                <?= esc($dup['company_name']) ?>
                                                             </div>
                                                         </td>
+
+                                                        <!-- ✅ contact -->
+                                                        <td>
+                                                            <i class="material-symbols-outlined text-muted" style="font-size:16px;">call</i>
+                                                            <?= esc($dup['contact']) ?>
+                                                        </td>
+
+                                                        <!-- ✅ duplicate files list -->
                                                         <td>
                                                             <?php
-                                                            $reasonLabel = match ($reason) {
-                                                                'full duplicate'        => 'Exact Duplicate (Same Name + Content)',
-                                                                'duplicate name only'   => 'Name Duplicate (Different Content)',
-                                                                'duplicate content only' => 'Content Duplicate (Different Name)',
-                                                                default                 => ucfirst(str_replace('_', ' ', $reason))
-                                                            };
+                                                            $files = $dup['files'];
+                                                            $firstFile = $files[0];
+                                                            $extraFiles = array_slice($files, 1);
+                                                            $extraCount = count($extraFiles);
+                                                            $uid = 'files_' . md5($dup['contact']); // unique collapse id
                                                             ?>
-                                                            <!-- <span class="badge bg-warning-subtle text-warning px-3 py-1"> -->
-                                                            <?= esc($reasonLabel) ?>
-                                                            <!-- </span> -->
 
-                                                        </td>
-                                                        <td>
-                                                            <div class="d-flex align-items-center gap-1">
-                                                                <i class="material-symbols-outlined text-muted" style="font-size: 16px;">content_copy</i>
-                                                                <span class="fw-semibold"> <?= esc(basename($d['duplicate_of'])) ?></span>
+                                                            <!-- ✅ INLINE: First File + "+X more" -->
+                                                            <div class="d-flex align-items-center gap-2">
+                                                                <i class="material-symbols-outlined text-muted" style="font-size:16px;">description</i>
+                                                                <span class="fw-semibold"><?= esc($firstFile['file_name']) ?></span>
+
+                                                                <?php if ($extraCount > 0): ?>
+                                                                    <a
+                                                                        class="text-primary small fw-semibold ms-2 cursor-pointer"
+                                                                        data-bs-toggle="collapse"
+                                                                        href="#<?= $uid ?>"
+                                                                        aria-expanded="false">
+                                                                        +<?= $extraCount ?> more file(s)
+                                                                    </a>
+                                                                <?php endif; ?>
                                                             </div>
+
+                                                            <!-- ✅ COLLAPSIBLE list (visible only when expanded) -->
+                                                            <?php if ($extraCount > 0): ?>
+                                                                <div class="collapse mt-0" id="<?= $uid ?>">
+                                                                    <?php foreach ($extraFiles as $file): ?>
+                                                                        <div class="d-flex align-items-center gap-2 mb-0">
+                                                                            <i class="material-symbols-outlined text-muted" style="font-size:16px;">description</i>
+                                                                            <span><?= esc($file['file_name']) ?></span>
+                                                                        </div>
+                                                                    <?php endforeach; ?>
+                                                                </div>
+                                                            <?php endif; ?>
                                                         </td>
-                                                        <td>
-                                                            <?= number_format($d['size_bytes'] / 1024, 1) ?> KB
-                                                        </td>
+
+
+                                                        <!-- ✅ total count -->
+                                                        <!-- <td class="text-center">
+                                                            <span class="text-warning fw-semibold text-lg text-dark">
+                                                                <?= count($dup['files']) ?>
+                                                            </span>
+                                                        </td> -->
                                                     </tr>
                                                 <?php endforeach; ?>
                                             </tbody>
+
                                         </table>
                                     </div>
                                 </div>
                             <?php endif; ?>
+
 
                             <?php if ($hasSeller && $hasService): ?>
                                 <!-- Combined View -->

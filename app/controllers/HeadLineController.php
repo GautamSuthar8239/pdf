@@ -1,6 +1,7 @@
 <?php
 
-class HeadLineController
+class HeadlineController
+
 {
     use Controller;
 

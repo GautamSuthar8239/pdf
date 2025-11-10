@@ -9,7 +9,7 @@ trait Database
         if ($pdo === null) {
             try {
 
-                $dbPath = DirROOT . "/../database.db";
+                $dbPath = DirROOT . "/database.db";
 
                 $pdo = new PDO("sqlite:" . $dbPath, null, null, [
                     PDO::ATTR_ERRMODE            => PDO::ERRMODE_EXCEPTION,

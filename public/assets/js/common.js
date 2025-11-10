@@ -67,9 +67,7 @@ $(document).ready(function () {
     $(document).on('hide.bs.modal', '.modal', function () {
         document.activeElement?.blur();
     });
-    // ============================================================
     // 🧩 CUSTOM SELECT DROPDOWN
-    // ============================================================
     $(document).on("click", ".custom-select__trigger", function (e) {
         e.stopPropagation();
         const $select = $(this).closest(".custom-select");
@@ -178,87 +176,6 @@ $(document).ready(function () {
         return (bytes / (1024 * 1024)).toFixed(1) + " MB";
     }
 
-    function renderDuplicateSummary(summary) {
-        const $card = $("#duplicateSummaryCard");
-        const $duplicateList = $("#duplicateSummaryBody #duplicateList");
-        const $count = $("#duplicateCount");
-
-        $duplicateList.empty();
-
-        if (!summary) {
-            console.error("summary is undefined:", summary);
-            return;
-        }
-
-        // ✅ summary keys must match backend
-        const nameOnly = summary.name_only || [];
-        const contentOnly = summary.content_only || [];
-        const fullDup = summary.full_duplicates || [];
-
-        const totalDuplicates =
-            nameOnly.length +
-            contentOnly.length +
-            fullDup.length;
-
-        $count.text(`(${totalDuplicates}) files.`);
-
-        if (totalDuplicates === 0) return;
-
-        let sections = [];
-
-        const sectionCard = (icon, title, tooltip, list) => `
-        <div class="file-item d-flex flex-column">
-            <h6 class="d-flex align-items-center justify-content-between w-100 mb-0">
-                <span class="d-flex align-items-center gap-2" title="${tooltip}">
-                    <i class="material-symbols-rounded">${icon}</i> ${title}
-                </span>
-                <span class="text-sm">${list.length}</span>
-            </h6>
-
-            ${list.map((f, i) => `
-                <span class="ms-3 d-flex align-items-center justify-content-between" style="font-size: 12px;">
-                    <span>${i + 1}. ${f.duplicate_of}</span>
-                    <span>(${formatSize(f.size_bytes)})</span>
-                </span>
-            `).join("")}
-        </div>
-    `;
-
-        if (nameOnly.length > 0) {
-            sections.push(sectionCard(
-                "badge",
-                "By Name",
-                "Duplicate By Name Only",
-                nameOnly
-            ));
-        }
-
-        if (contentOnly.length > 0) {
-            sections.push(sectionCard(
-                "content_copy",
-                "By Content",
-                "Duplicate By Content Only",
-                contentOnly
-            ));
-        }
-
-        if (fullDup.length > 0) {
-            sections.push(sectionCard(
-                "library_books",
-                "Duplicate File",
-                "Fully Duplicate (Name + Content)",
-                fullDup
-            ));
-        }
-
-        $duplicateList.html(sections.join(""));
-
-        $card.removeClass("d-none");
-    }
-
-
-
-
     function totalSize(files) {
         let size = 0;
         for (let f of files) size += f.size;
@@ -274,10 +191,6 @@ $(document).ready(function () {
         try {
             extractedData = await processPdfFilesJQ(files);
 
-            // ✅ Render duplicate summary
-
-            renderDuplicateSummary(extractedData.summary);
-
             $submitBtn.prop('disabled', false).html(`
                 <i class="material-symbols-outlined" style="vertical-align: middle; font-size: 18px;">send</i>Fetch & View Data
                 `);
@@ -291,11 +204,7 @@ $(document).ready(function () {
         }
     }
 
-    CommonCheckboxUtils.init('#selectAllData', '.data-filter:not(:disabled)', function ($checkboxes) {
-
-        const selectedIds = CommonCheckboxUtils.getSelected($checkboxes);
-        console.log("📧 Selected campaigns:", selectedIds);
-    });
+    CommonCheckboxUtils.init('#selectAllData', '.data-filter:not(:disabled)', function ($checkboxes) { });
 
     // === Form Submit (on button click) ===
     $uploadForm.on('submit', function (e) {
@@ -347,7 +256,6 @@ $(document).ready(function () {
 
         document.body.appendChild(form);
         form.submit();
-        // console.log("extractedData: ", extractedData);
     });
 
 
@@ -405,7 +313,7 @@ $(document).ready(function () {
 
             default:
                 // ✅ Handle dynamic detail tabs automatically
-                let tabId = activeTab.replace("#", "");   // e.g. "#contract_details" → "contract_details"
+                let tabId = activeTab.replace("#", "");
                 $("#" + tabId + "Badge").removeClass("d-none");
         }
     }
@@ -423,13 +331,8 @@ $(document).ready(function () {
         // Remove active from all
         $(".settings-menu .list-group-item").removeClass("active");
 
-        // Add active to clicked
         $(this).addClass("active");
-
-        // Hide all sections
         $(".settings-section").addClass("d-none");
-
-        // Show targeted section
         const target = $(this).data("setting-target");
         $(target).removeClass("d-none");
     });
@@ -438,107 +341,32 @@ $(document).ready(function () {
 
 
 
-
-
-
-
 async function processPdfFilesJQ(files) {
-    let allData = [];        // ✅ unique only
-    let duplicates = [];     // ✅ all duplicates (full objects)
 
-    let nameMap = {};
-    let contentMap = {};
-
-    let summaryNameOnly = [];
-    let summaryContentOnly = [];
-    let summaryFullDuplicates = [];
-
+    let allData = [];
     let totalFileSize = 0;
 
     for (let file of files) {
-        let baseName = normalizeFileName(file.name);
+
         totalFileSize += file.size;
 
         const text = await extractPdfText(file);
-        const contentKey = text.replace(/\s+/g, "").toLowerCase();
 
-        let nameMatch = nameMap[baseName];
-        let contentMatch = contentMap[contentKey];
-
-        let duplicate_reason = null;
-        let duplicate_of = null;
-        let isDuplicate = false;
-
-        // ✅ Full object for both unique & duplicate
         const fileObj = {
             file_name: file.name,
-            base_name: baseName,
+            base_name: normalizeFileName(file.name),
             raw_text: text,
-            size_bytes: file.size,
-            duplicate_reason: null,
-            duplicate_of: null
+            size_bytes: file.size
         };
-
-        // ✅ FULL DUPLICATE
-        if (nameMatch && contentMatch && nameMatch === contentMatch) {
-            duplicate_reason = "full_duplicate";
-            duplicate_of = nameMatch;
-            isDuplicate = true;
-
-            fileObj.duplicate_reason = duplicate_reason;
-            fileObj.duplicate_of = duplicate_of;
-
-            duplicates.push(fileObj);
-            summaryFullDuplicates.push(fileObj);
-
-            // ✅ NAME DUPLICATE ONLY
-        } else if (nameMatch && !contentMatch) {
-            duplicate_reason = "duplicate_name_only";
-            duplicate_of = nameMatch;
-            isDuplicate = true;
-
-            fileObj.duplicate_reason = duplicate_reason;
-            fileObj.duplicate_of = duplicate_of;
-
-            duplicates.push(fileObj);
-            summaryNameOnly.push(fileObj);
-
-            // ✅ CONTENT DUPLICATE ONLY
-        } else if (!nameMatch && contentMatch) {
-            duplicate_reason = "duplicate_content_only";
-            duplicate_of = contentMatch;
-            isDuplicate = true;
-
-            fileObj.duplicate_reason = duplicate_reason;
-            fileObj.duplicate_of = duplicate_of;
-
-            duplicates.push(fileObj);
-            summaryContentOnly.push(fileObj);
-
-            // ✅ UNIQUE
-        } else {
-            nameMap[baseName] = file.name;
-            contentMap[contentKey] = file.name;
-
-            allData.push(fileObj);
-        }
+        allData.push(fileObj);
     }
 
     return {
-        allData,           // ✅ unique files only
-        duplicates,        // ✅ all duplicates with full information
+        allData,
         total_size_bytes: totalFileSize,
-        total_size_readable: formatBytes(totalFileSize),
-
-        // ✅ duplicate categories if you still need them in UI
-        summary: {
-            name_only: summaryNameOnly,
-            content_only: summaryContentOnly,
-            full_duplicates: summaryFullDuplicates
-        }
+        total_size_readable: formatBytes(totalFileSize)
     };
 }
-
 
 
 function formatBytes(bytes) {
@@ -565,8 +393,6 @@ function normalizeFileName(name) {
     return base + ext;
 }
 
-
-
 // pdf-reader.js
 async function extractPdfText(file) {
     return new Promise((resolve, reject) => {
@@ -592,9 +418,7 @@ async function extractPdfText(file) {
                 reject(error);
             }
         };
-
         reader.onerror = reject;
-
         reader.readAsArrayBuffer(file);
     });
 }

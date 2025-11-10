@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>We’ll Be Back Soon</title>
+
+    <!-- Lottie Player -->
+    <script src="https://unpkg.com/@lottiefiles/lottie-player@latest/dist/lottie-player.js"></script>
+
+    <style>
+      body {
+        margin: 0;
+        padding: 0;
+        font-family: "Poppins", sans-serif;
+        background: linear-gradient(135deg, #eef2f3, #d9e7ff);
+        height: 100vh;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        text-align: center;
+      }
+
+      .card {
+        background: #fff;
+        padding: 40px;
+        border-radius: 18px;
+        max-width: 450px;
+        width: 90%;
+        box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+        animation: fadeIn 0.7s ease-in-out;
+      }
+
+      h2 {
+        font-size: 26px;
+        margin-top: 10px;
+        margin-bottom: 10px;
+        color: #333;
+      }
+
+      p {
+        color: #555;
+        font-size: 16px;
+      }
+
+      @keyframes fadeIn {
+        from {
+          opacity: 0;
+          transform: translateY(20px);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="card">
+      <!-- ✅ Lottie Animation -->
+      <lottie-player
+        src="https://assets7.lottiefiles.com/packages/lf20_jtbfg2nb.json"
+        background="transparent"
+        speed="1"
+        style="width: 220px; height: 220px; margin: auto"
+        loop
+        autoplay
+      >
+      </lottie-player>
+
+      <h2>Site Under Maintenance</h2>
+      <p>
+        We are upgrading our system to serve you better.<br />
+        Please check back again in a little while.
+      </p>
+    </div>
+  </body>
+</html>

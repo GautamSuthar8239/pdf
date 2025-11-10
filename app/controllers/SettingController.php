@@ -8,7 +8,7 @@ class SettingController
     {
         $data = [
             'title' => 'Settings',
-            'breadcrumb' => ['Settings']
+            'breadcrumb' => ['Home / Settings']
 
         ];
 

@@ -12,9 +12,9 @@
 
 spl_autoload_register(function ($classname) {
     $paths = [
-        "../app/models/",
-        "../app/controllers/",
-        "../app/core/",
+        "./app/models/",
+        "./app/controllers/",
+        "./app/core/",
     ];
 
     foreach ($paths as $path) {
@@ -33,4 +33,4 @@ require 'Database.php';
 require 'Model.php';
 require 'functions.php';
 require 'Controller.php';
-require '../vendor/autoload.php';
+require './vendor/autoload.php';

@@ -103,11 +103,11 @@ class PdfModel
             'consignee_details' => $this->extractConsigneeDetails($text),
             'organisation_details' => $this->extractOrganisationDetails($text),
             'financial_approval' => $this->extractFinancialApproval($text),
-            'seller_details' => $this->extractSellerDetails($text),
             'contract_details' => $this->extractContractDetails($text),
-            'service_provider_details' => $this->extractServiceProviderDetails($text),
-            'raw_text' => $text,
             'product_details' => $this->extractProductDetails($text),
+            'service_provider_details' => $this->extractServiceProviderDetails($text),
+            'seller_details' => $this->extractSellerDetails($text),
+            'raw_text' => $text,
 
         ];
     }
@@ -474,11 +474,11 @@ class PdfModel
 
         $block = $this->cleanBlock($section[1]);
 
-        if (preg_match('/Product Name\s*:\s*(?:Product Name\s*:\s*)?(.+?)(?:\s*(Brand|ांड|ांड|ांड|ांड|$))/isu', $block, $m)) {
+        if (preg_match('/Product Name\s*:\s*(?:Product Name\s*:\s*)?(.+?)(?:\s*(Brand|ांड|ांड|ांड|ांड|ांड|$))/isu', $block, $m)) {
             $details['product_name'] = $this->cleanText($m[1]);
         }
 
-        if (preg_match('/Brand\s*:\s*(?:Brand\s*:\s*)?(.+?)(?=\s+(Brand Type|ांड|ांड|ांड|ांड|$))/isu', $block, $m)) {
+        if (preg_match('/Brand\s*:\s*(?:Brand\s*:\s*)?(.+?)(?=\s+(Brand Type|ांड|ांड|ांड|ांड|ांड|$))/isu', $block, $m)) {
             $details['brand'] = $this->cleanText($m[1]);
         }
 
@@ -493,7 +493,7 @@ class PdfModel
         }
 
 
-        if (preg_match('/Selling As\s*:\s*(?:Selling As\s*:\s*)?(.+?)(?=\s+(Category|ेणी|sेणी|rेणी|wेणी|tेणी|$))/isu', $block, $m)) {
+        if (preg_match('/Selling As\s*:\s*(?:Selling As\s*:\s*)?(.+?)(?=\s+(Category|ेणी|sेणी|rेणी|wेणी|tेणी|vेणी|$))/isu', $block, $m)) {
             $details['selling_as'] = $this->cleanText($m[1]);
         }
 
@@ -640,5 +640,4 @@ class PdfModel
     {
         return count(array_filter($allData, fn($d) => !empty($d[$sectionKey])));
     }
-    
 }

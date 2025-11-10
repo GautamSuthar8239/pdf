@@ -25,9 +25,9 @@ class App
         if (strtolower($controllerName) === 'pdf') {
             $controllerName = 'Pdf';
         }
-        $filename = "../app/controllers/" . $controllerName . ".php";
+        $filename = "./app/controllers/" . $controllerName . ".php";
         if (!file_exists($filename)) {
-            $filename = "../app/controllers/" . $controllerName . "Controller.php";
+            $filename = "./app/controllers/" . $controllerName . "Controller.php";
             $controllerName .= "Controller";
         }
 
@@ -35,7 +35,7 @@ class App
             require $filename;
             $this->controller = $controllerName;
         } else {
-            $filename = "../app/controllers/NotFound.php";
+            $filename = "./app/controllers/NotFound.php";
             require $filename;
             $this->controller = "NotFound";
         }

@@ -8,11 +8,11 @@
                         <i class="material-symbols-outlined">cloud_upload</i> Upload PDF Files
                     </h5>
 
-                    <?php if (isset($dataOptionEnabled) && $dataOptionEnabled === 'off'): ?>
+                    <!-- <?php if (isset($dataOptionEnabled) && $dataOptionEnabled === 'off'): ?>
                         <button type="button" class="btn btn-sm border-orange border shadow-none mb-0 " disabled>
                             Filter Data
                         </button>
-                    <?php endif; ?>
+                    <?php endif; ?> -->
 
                     <!-- Checkbox dropdown for selecting data to show and export to Excel -->
                     <div class="dropdown <?= isset($dataOptionEnabled) && $dataOptionEnabled === 'off' ? 'd-none' : '' ?>">
@@ -129,9 +129,10 @@
                         <!-- ✅ Left Column: How It Works -->
                         <div class="col-md-6">
                             <div class="p-3 rounded-3" style="background: #fcf6b8ff; border-left: 3px solid #f59e0b;">
-                                <h6 class="fw-bold text-purple d-flex align-items-center gap-1">
+                                <h6 class="fw-bold text-purple d-flex align-items-center gap-1 w-100">
                                     <i class="material-symbols-outlined text-orange" style="vertical-align: middle;">follow_the_signs</i>
-                                    How It Works
+                                    <!-- <span class="text-warning ms-2 mb-0 pb-0">|</span> -->
+                                    <span class="ms-1" style="border-bottom: 1px solid #f59e0b;">How It Works</span>
                                 </h6>
 
                                 <ol class="ps-3 mb-0" style="line-height: 1.8; font-size: 13px; color: #374151;">
@@ -145,26 +146,28 @@
                         </div>
 
                         <!-- ✅ Right Column: Filter Instructions -->
-                        <div class="col-md-6">
-                            <div class="p-3 rounded-3 h-100" style="background: #d9e8f7ff; border-left: 4px solid #6d28d9;">
-                                <h6 class="fw-bold text-purple mb-1 d-flex align-items-center gap-1" style="font-size: 14px;">
-                                    <i class="material-symbols-outlined text-purple" style="font-size:18px;">tune</i>
-                                    Filter Data Instructions <?= isset($dataOptionEnabled) && $dataOptionEnabled === 'off' ? '(Coming Soon)' : '' ?>
-                                </h6>
-                                <?php if (isset($dataOptionEnabled) && $dataOptionEnabled === 'on'): ?>
+                        <?php if (isset($dataOptionEnabled) && $dataOptionEnabled === 'on'): ?>
+                            <div class="col-md-6">
+                                <div class="p-3 rounded-3 h-100" style="background: #d9e8f7ff; border-left: 4px solid #6d28d9;">
+                                    <h6 class="fw-bold text-purple mb-1 d-flex align-items-center gap-1" style="font-size: 14px;">
+                                        <i class="material-symbols-outlined text-purple" style="font-size:18px;">tune</i>
+                                        Filter Data Instructions <?= isset($dataOptionEnabled) && $dataOptionEnabled === 'off' ? '(Coming Soon)' : '' ?>
+                                    </h6>
+                                    <!-- <?php if (isset($dataOptionEnabled) && $dataOptionEnabled === 'on'): ?> -->
                                     <ol class="mb-0 ps-3" style="font-size: 13px; line-height: 1.6;">
                                         <li>Use the <strong>Filter Data</strong> button to choose which sections of extracted data are displayed.</li>
                                         <li>Your filter selections also apply when exporting to Excel.</li>
                                         <li><strong>Seller</strong> and <strong>Service Provider</strong> sections are always included.</li>
                                         <li>Use <strong>Select All</strong> to enable every data section instantly.</li>
                                     </ol>
-                                <?php else: ?>
+                                    <!-- <?php else: ?>
                                     <p class="text-muted ps-1 mb-0" style="font-size: 12px;">
                                         This feature is coming soon.
                                     </p>
-                                <?php endif; ?>
+                                <?php endif; ?> -->
+                                </div>
                             </div>
-                        </div>
+                        <?php endif; ?>
 
                     </div>
 
@@ -194,7 +197,7 @@
                     </div>
                 </div>
             </div>
-            <div class="card border-0 shadow-sm mt-3 border-radius-lg d-none" id="duplicateSummaryCard" style="min-height: 242px; max-height: 242px;">
+            <!-- <div class="card border-0 shadow-sm mt-3 border-radius-lg d-none" id="duplicateSummaryCard" style="min-height: 242px; max-height: 242px;">
                 <div class="card-header py-2" style="background: #d6a4ffff;">
                     <h6 class="fw-bold text-white d-flex align-items-center justify-content-between mb-0">
                         <div class="d-flex align-items-center gap-1">
@@ -212,13 +215,10 @@
                         </div>
                     </div>
                 </div>
-            </div>
+            </div> -->
         </div>
     </div>
 </div>
-
-<!-- <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script> -->
-<!-- <script src="<?= ROOT; ?>/assets/js/common.js"></script> -->
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.14.305/pdf.min.js"></script>
 <!-- SheetJS (Excel generation) -->
