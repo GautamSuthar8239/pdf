@@ -43,88 +43,85 @@ class PdfController
         // show($result);       // Debug
         // show($filters);   // Debug
         // show($datas);        // Debug
-
         $model = new PdfModel();
-
-        $allData = [];
-
-        // $sectionMap = $model->getSectionToFieldMap();
+        $sectionMap = $model->getSectionToFieldMap();
 
         foreach ($datas as $item) {
+
             $extracted = $model->extractData($item['raw_text']);
 
             // Add file info
             $extracted['file_name'] = $item['file_name'];
             $extracted['base_name'] = $item['base_name'];
 
-            // ✅ Remove unwanted sections according to filters
-            // if (!empty($filters)) {
-            //     foreach ($sectionMap as $filterKey => $sectionName) {
+            // ✅ Remove unwanted sections
+            foreach ($sectionMap as $filterKey => $sectionName) {
 
-            //         // seller & service ALWAYS kept
-            //         if ($filterKey === 'seller' || $filterKey === 'service') {
-            //             continue;
-            //         }
+                // seller & service ALWAYS included
+                if ($filterKey === 'seller' || $filterKey === 'service') {
+                    continue;
+                }
 
-            //         // If this section is NOT selected → remove it
-            //         if (empty($filters[$filterKey])) {
-            //             unset($extracted[$sectionName]);
-            //         }
-            //     }
-            // }
+                // If deselected → remove
+                if (empty($filters[$filterKey])) {
+                    unset($extracted[$sectionName]);
+                }
+            }
 
             $allData[] = $extracted;
         }
+        // show($allData);
 
-        show($allData);
+        // Generate Excel with multiple sheets
+        $spreadsheet = new Spreadsheet();
+        $spreadsheet->removeSheetByIndex(0);
 
-        // // Generate Excel with multiple sheets
-        // $spreadsheet = new Spreadsheet();
-        // $spreadsheet->removeSheetByIndex(0);
+        $this->createSellerDetailsSheet($spreadsheet, $allData);
+        $this->createServiceProviderSheet($spreadsheet, $allData);
+        $this->createCombinedSheet($spreadsheet, $allData);
 
-        // $this->createSellerDetailsSheet($spreadsheet, $allData);
-        // $this->createServiceProviderSheet($spreadsheet, $allData);
-        // $this->createCombinedSheet($spreadsheet, $allData);
+        $sheetMap = [
+            'contract'     => 'createContractDetailsSheet',
+            'buyer'        => 'createBuyerDetailsSheet',
+            'consignee'    => 'createConsigneeDetailsSheet',
+            'organisation' => 'createOrganisationDetailsSheet',
+            'financial'    => 'createFinancialApprovalSheet',
+            'paying'       => 'createPayingAuthoritySheet',
+            'product_details'      => 'createProductDetailsSheet',
+            // 'raw_text'   => 'createRawTextSheet',
+        ];
 
-        // $sheetMap = [
-        //     'contract'     => 'createContractDetailsSheet',
-        //     'buyer'        => 'createBuyerDetailsSheet',
-        //     'consignee'    => 'createConsigneeDetailsSheet',
-        //     'organisation' => 'createOrganisationDetailsSheet',
-        //     'financial'    => 'createFinancialApprovalSheet',
-        //     'paying'       => 'createPayingAuthoritySheet',
-        //     // 'raw_text'   => 'createRawTextSheet',
-        // ];
-
-        // if (!empty($filters)) {
-        //     foreach ($sheetMap as $key => $method) {
-        //         if (!empty($filters[$key])) {
-        //             $this->$method($spreadsheet, $allData);
-        //         }
-        //     }
-        // } else {
-        //     // Default: create all sheets (fallback)
-        //     $this->createSellerDetailsSheet($spreadsheet, $allData);
-        //     $this->createServiceProviderSheet($spreadsheet, $allData);
-        //     $this->createCombinedSheet($spreadsheet, $allData);
-        // }
+        if (!empty($filters)) {
+            foreach ($sheetMap as $key => $method) {
+                if (!empty($filters[$key])) {
+                    $this->$method($spreadsheet, $allData);
+                }
+            }
+        } else {
+            // Default: create all sheets (fallback)
+            $this->createSellerDetailsSheet($spreadsheet, $allData);
+            $this->createServiceProviderSheet($spreadsheet, $allData);
+            $this->createCombinedSheet($spreadsheet, $allData);
+        }
 
 
-        // // Save Excel file
-        // // Store $allData in session for download later
-        // $_SESSION['pdf_excel_data'] = $allData;
+        // Save Excel file
+        // Store $allData in session for download later
+        $_SESSION['pdf_excel_data'] = $allData;
+        $_SESSION['pdf_filters'] = $filters;
 
-        // // Render result view
-        // $data = [
-        //     'allData' => $allData,
-        //     'duplicates' => $duplicates,
-        //     'summary' => $summary,
-        //     'filters' => $filters,
-        //     'excel_path' => '/pdf/downloadExcel', // new route for Excel download
-        //     'title' => 'Extracted Data',
-        //     'breadcrumb' => ['PDF', 'Extracted Data']
-        // ];
-        // $this->view('pdf/result_view', $data);
+        // Render result view
+        $data = [
+            'allData' => $allData,
+            'duplicates' => $duplicates,
+            'summary' => $summary,
+            'filters' => $filters,
+            'excel_path' => '/pdf/downloadExcel', // new route for Excel download
+            'title' => 'Extracted Data',
+            'breadcrumb' => ['PDF', 'Extracted Data']
+        ];
+        $this->view('pdf/result_view', $data);
+        // show($data);
     }
 
 
@@ -280,6 +277,54 @@ class PdfController
 
         $this->setColumnWidths($sheet, [20, 20, 25, 20, 18, 25, 40, 20, 25]);
     }
+
+    private function createProductDetailsSheet($spreadsheet, $allData)
+    {
+        $sheet = $spreadsheet->createSheet();
+        $sheet->setTitle('Product Details');
+
+        $headers = [
+            'File Name',
+            'Product Name',
+            'Brand',
+            'Brand Type',
+            'Catalogue Status',
+            'Selling As',
+            'Category',
+            'Model',
+            'HSN Code',
+            'Quantity',
+            'Unit Price',
+            'Total Order Value'
+        ];
+
+        $this->applyHeaderStyle($sheet, $headers);
+
+        $row = 2;
+
+        foreach ($allData as $data) {
+            $p = $data['product_details'] ?? [];
+            if (empty($p)) continue;
+
+            $sheet->setCellValue('A' . $row, $data['file_name']);
+            $sheet->setCellValue('B' . $row, $p['product_name'] ?? 'N/A');
+            $sheet->setCellValue('C' . $row, $p['brand'] ?? 'N/A');
+            $sheet->setCellValue('D' . $row, $p['brand_type'] ?? 'N/A');
+            $sheet->setCellValue('E' . $row, $p['catalogue_status'] ?? 'N/A');
+            $sheet->setCellValue('F' . $row, $p['selling_as'] ?? 'N/A');
+            $sheet->setCellValue('G' . $row, $p['category'] ?? 'N/A');
+            $sheet->setCellValue('H' . $row, $p['model'] ?? 'N/A');
+            $sheet->setCellValue('I' . $row, $p['hsn_code'] ?? 'N/A');
+            $sheet->setCellValue('J' . $row, $p['quantity'] ?? 'N/A');
+            $sheet->setCellValue('K' . $row, $p['unit_price'] ?? 'N/A');
+            $sheet->setCellValue('L' . $row, $p['total_order_value'] ?? 'N/A');
+
+            $row++;
+        }
+
+        $this->setColumnWidths($sheet, [20, 20, 20, 20, 30, 30, 30, 20, 20, 15, 15, 20]);
+    }
+
 
     private function createPayingAuthoritySheet($spreadsheet, $allData)
     {
@@ -485,7 +530,7 @@ class PdfController
             if (empty($details)) continue;
 
             $sheet->setCellValue('A' . $row, $data['file_name']);
-            $sheet->setCellValue('B' . $row, $details['ifd'] ?? 'N/A');
+            $sheet->setCellValue('B' . $row, $details['ifd_concurrence'] ?? 'N/A');
             $sheet->setCellValue('C' . $row, $details['admin_approval'] ?? 'N/A');
             $sheet->setCellValue('D' . $row, $details['financial_approval'] ?? 'N/A');
 
@@ -495,7 +540,6 @@ class PdfController
         $this->setColumnWidths($sheet, [20, 20, 40, 20]);
     }
 
-
     public function downloadExcel()
     {
         if (empty($_SESSION['pdf_excel_data'])) {
@@ -504,15 +548,43 @@ class PdfController
         }
 
         $allData = $_SESSION['pdf_excel_data'];
+        $filters = $_SESSION['pdf_filters'] ?? [];  // ✅ store filters during upload
 
         $spreadsheet = new Spreadsheet();
         $spreadsheet->removeSheetByIndex(0);
 
+        // ✅ Base sheets always included
         $this->createSellerDetailsSheet($spreadsheet, $allData);
         $this->createServiceProviderSheet($spreadsheet, $allData);
         $this->createCombinedSheet($spreadsheet, $allData);
-        $this->createContractDetailsSheet($spreadsheet, $allData);
 
+        // ✅ Sheet map (same as upload)
+        $sheetMap = [
+            'contract'     => 'createContractDetailsSheet',
+            'buyer'        => 'createBuyerDetailsSheet',
+            'consignee'    => 'createConsigneeDetailsSheet',
+            'organisation' => 'createOrganisationDetailsSheet',
+            'financial'    => 'createFinancialApprovalSheet',
+            'paying'       => 'createPayingAuthoritySheet',
+            'product'      => 'createProductDetailsSheet',
+            // 'raw_text'   => 'createRawTextSheet',
+        ];
+
+        // ✅ Apply only selected filters (like upload)
+        if (!empty($filters)) {
+            foreach ($sheetMap as $key => $method) {
+                if (!empty($filters[$key])) {
+                    $this->$method($spreadsheet, $allData);
+                }
+            }
+        } else {
+            // ✅ If no filters, include all
+            foreach ($sheetMap as $method) {
+                $this->$method($spreadsheet, $allData);
+            }
+        }
+
+        // ✅ Output Excel
         $filename = 'contract_data_' . date('Y-m-d_H-i-s') . '.xlsx';
         header('Content-Type: application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
         header('Content-Disposition: attachment;filename="' . $filename . '"');
@@ -520,7 +592,7 @@ class PdfController
 
         $writer = new Xlsx($spreadsheet);
         $writer->save('php://output');
-        unset($_SESSION['pdf_excel_data']); // Clear session data after download
+
         exit;
     }
 

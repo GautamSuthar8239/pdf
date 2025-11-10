@@ -4243,7 +4243,7 @@ fieldset:disabled .btn {
   --bs-btn-hover-bg: #fb8c00; */
   --bs-btn-hover-border-color: #fb8c00;
   --bs-btn-focus-shadow-rgb: 251, 140, 0;
-  /* --bs-btn-active-color: #0a0a0a; */
+  --bs-btn-active-color: #0a0a0a;
   /* --bs-btn-active-bg: #fb8c00; */
   --bs-btn-active-border-color: #fb8c00;
   --bs-btn-active-shadow: none;
@@ -5088,7 +5088,7 @@ fieldset:disabled .btn {
 
 .navbar-collapse {
   flex-basis: 100%;
-  flex-grow: 1;
+  flex-grow: 0;
   align-items: center;
 }
 

@@ -2,6 +2,10 @@
 
 class PdfModel
 {
+    /**
+     * Maps UI filter keys → extracted data array keys.
+     * Example: 'contract' → 'contract_details'
+     */
     public function getSectionToFieldMap()
     {
         return [
@@ -17,13 +21,48 @@ class PdfModel
         ];
     }
 
+    /**
+     * Maps extracted data keys → filter keys (for view rendering).
+     * Example: 'contract_details' → 'contract'
+     */
+    public function filterKeyMap()
+    {
+        return [
+            'contract_details'         => 'contract',
+            'buyer_details'            => 'buyer',
+            'consignee_details'        => 'consignee',
+            'organisation_details'     => 'organisation',
+            'financial_approval'       => 'financial',
+            'paying_authority_details' => 'paying',
+            'product_details'          => 'product',
+        ];
+    }
+
+    /**
+     * Labels used for rendering tabs in Details View.
+     */
+    public function getDetailSections()
+    {
+        return [
+            'contract_details'         => 'Contract Details',
+            'buyer_details'            => 'Buyer Details',
+            'consignee_details'        => 'Consignee Details',
+            'organisation_details'     => 'Organisation Details',
+            'financial_approval'       => 'Financial Approval',
+            'paying_authority_details' => 'Paying Authority Details',
+            'product_details'          => 'Product Details',
+        ];
+    }
+
+    /**
+     * Sections available in the filter dropdown (Upload Page).
+     */
     public function getAvailableSections()
     {
         return [
             'seller'        => 'Seller Details',
             'service'       => 'Service Provider Details',
             'contract'      => 'Contract Details',
-            // 'raw_text'      => 'Raw Extracted Text',
             'buyer'         => 'Buyer Details',
             'consignee'     => 'Consignee Details',
             'organisation'  => 'Organisation Details',
@@ -34,20 +73,39 @@ class PdfModel
     }
 
     /**
+     * Icons for each filter/tab key.
+     */
+    public function getIconMap()
+    {
+        return [
+            'seller'        => 'store',
+            'service'       => 'support_agent',
+            'contract'      => 'description',
+            'buyer'         => 'badge',
+            'consignee'     => 'local_shipping',
+            'organisation'  => 'apartment',
+            'financial'     => 'payments',
+            'product'       => 'inventory',
+            'paying'        => 'account_balance',
+            'raw_text'      => 'text_snippet',
+        ];
+    }
+
+    /**
      * Main extraction method - extracts all data from PDF text
      */
     public function extractData($text)
     {
         return [
-            'file_type' => $this->detectFileType($text),
-            // 'paying_authority_details' => $this->extractPayingAuthority($text),
-            // 'buyer_details' => $this->extractBuyerDetails($text),
-            // 'consignee_details' => $this->extractConsigneeDetails($text),
-            // 'organisation_details' => $this->extractOrganisationDetails($text),
-            // 'financial_approval' => $this->extractFinancialApproval($text),
-            // 'seller_details' => $this->extractSellerDetails($text),
-            // 'contract_details' => $this->extractContractDetails($text),
-            // 'service_provider_details' => $this->extractServiceProviderDetails($text),
+            // 'file_type' => $this->detectFileType($text),
+            'paying_authority_details' => $this->extractPayingAuthority($text),
+            'buyer_details' => $this->extractBuyerDetails($text),
+            'consignee_details' => $this->extractConsigneeDetails($text),
+            'organisation_details' => $this->extractOrganisationDetails($text),
+            'financial_approval' => $this->extractFinancialApproval($text),
+            'seller_details' => $this->extractSellerDetails($text),
+            'contract_details' => $this->extractContractDetails($text),
+            'service_provider_details' => $this->extractServiceProviderDetails($text),
             'raw_text' => $text,
             'product_details' => $this->extractProductDetails($text),
 
@@ -266,7 +324,7 @@ class PdfModel
 
         // IFD Concurrence
         if (preg_match('/IFD Concurrence\s*[:|]*\s*([^\n]+)/i', $block, $m)) {
-            $details['ifd'] = $this->extractYesNo($m[1]);
+            $details['ifd_concurrence'] = $this->extractYesNo($m[1]);
         }
 
         // Administrative Approval
@@ -351,6 +409,14 @@ class PdfModel
             $details['gstin'] = $this->cleanGstin($m[1]);
         }
 
+        // Delivery dates
+        if (preg_match('/-\s*(\d+)\s+(\d{2}-[A-Za-z]{3}-\d{4})\s+(\d{2}-[A-Za-z]{3}-\d{4})/u', $block, $m)) {
+            $details['delivery_quantity'] = (int)$m[1];
+            $details['delivery_start'] = $m[2];
+            $details['delivery_end'] = $m[3];
+        }
+
+
         if (preg_match('/(?:पता\s*\|\s*Address|Address)\s*:\s*(.*?India)/is', $block, $m)) {
 
             $raw = $m[1];
@@ -402,81 +468,66 @@ class PdfModel
     {
         $details = [];
 
-        // ✅ Match Product Details block
-        if (!preg_match('/Product Details(.*?)(?=Consignee|Product Specification|Specification|Terms and Conditions|$)/is', $text, $section)) {
+        if (!preg_match('/Product Details(.*?)(?=Consignee Detail|Terms and Conditions|$)/is', $text, $section)) {
             return $details;
         }
 
         $block = $this->cleanBlock($section[1]);
 
-        // ---------- AGGRESSIVE CLEANUP ----------
-        // Remove duplicate English labels (Brand : Brand :)
-        $block = preg_replace('/\b([A-Za-z ]+)\s*:\s*\1\s*:/i', '$1 :', $block);
-
-        // Remove Hindi/Devanagari script characters that appear after values
-        $block = preg_replace('/[\x{0900}-\x{097F}]+/u', '', $block);
-
-        // Remove multiple spaces
-        $block = preg_replace('/\s+/', ' ', $block);
-
-        // ✅ Enhanced extraction with strict stoppers
-        $extract = function ($label, $block) {
-            $stoppers = [
-                'Brand',
-                'Brand Type',
-                'Catalogue Status',
-                'Selling As',
-                'Category',
-                'Category Name',
-                'Model',
-                'HSN',
-                'Code',
-                'pieces',
-                'Total Order Value',
-                'Product Name',
-                'Consignee'
-            ];
-
-            // Match label, capture until next stopper OR newline/colon pattern
-            $pattern = '/' . preg_quote($label, '/') . '\s*[:|]\s*(.*?)(?=\s*\b(' . implode('|', $stoppers) . ')\b\s*[:|]|$)/is';
-
-            if (preg_match($pattern, $block, $m)) {
-                $value = trim($m[1]);
-                // Remove trailing colons and clean
-                $value = rtrim($value, ':');
-                return preg_replace('/\s+/', ' ', $value);
-            }
-
-            return '';
-        };
-
-        // ✅ Extract fields
-        $details['product_name']     = $extract('Product Name', $block);
-        $details['brand']            = $extract('Brand', $block);
-        $details['brand_type']       = $extract('Brand Type', $block);
-        $details['catalogue_status'] = $extract('Catalogue Status', $block);
-        $details['selling_as']       = $extract('Selling As', $block);
-        $details['category']         = $extract('Category Name', $block);
-        $details['model']            = $extract('Model', $block);
-        $details['hsn_code']         = $extract('HSN Code', $block);
-
-        // ✅ Quantity
-        if (preg_match('/\b(\d+)\s*(?:pieces?|pcs?)\b/i', $block, $m)) {
-            $details['quantity'] = $m[1];
+        if (preg_match('/Product Name\s*:\s*(?:Product Name\s*:\s*)?(.+?)(?:\s*(Brand|ांड|ांड|ांड|ांड|$))/isu', $block, $m)) {
+            $details['product_name'] = $this->cleanText($m[1]);
         }
 
-        // ✅ Unit Price (look for pattern: quantity pieces PRICE)
-        if (preg_match('/\d+\s*pieces?\s+(\d[\d,]*)/i', $block, $m)) {
-            $details['unit_price'] = str_replace(',', '', $m[1]);
+        if (preg_match('/Brand\s*:\s*(?:Brand\s*:\s*)?(.+?)(?=\s+(Brand Type|ांड|ांड|ांड|ांड|$))/isu', $block, $m)) {
+            $details['brand'] = $this->cleanText($m[1]);
         }
 
-        // ✅ Total Order Value
-        if (preg_match('/Total\s+Order\s+Value[:\s]*(\d[\d,]*)/i', $block, $m)) {
-            $details['total_value'] = str_replace(',', '', $m[1]);
+
+        if (preg_match('/Brand Type\s*:\s*(?:Brand Type\s*:\s*)?(.+?)(?=\s+(Catalogue|क|$))/isu', $block, $m)) {
+            $details['brand_type'] = $this->cleanText($m[1]);
+        }
+
+
+        if (preg_match('/Catalogue Status\s*:\s*(?:Catalogue Status\s*:\s*)?(.+?)(?=\s+(Selling As|क|$))/isu', $block, $m)) {
+            $details['catalogue_status'] = $this->cleanText($m[1]);
+        }
+
+
+        if (preg_match('/Selling As\s*:\s*(?:Selling As\s*:\s*)?(.+?)(?=\s+(Category|ेणी|sेणी|rेणी|wेणी|tेणी|$))/isu', $block, $m)) {
+            $details['selling_as'] = $this->cleanText($m[1]);
+        }
+
+
+        if (preg_match('/Category Name\s*&\s*Quadrant\s*:\s*(?:Category Name\s*&\s*Quadrant\s*:\s*)?(.+?)()(?=\s+(Model|मॉडल|$))/iu', $block, $m)) {
+            $details['category'] = $this->cleanText($m[1]);
+        }
+
+        if (preg_match('/Model\s*:\s*(?:Model\s*:\s*)?(.+?)(?=\s+(HSN Code|एचएसएन|$))/iu', $block, $m)) {
+            $details['model'] = $this->cleanText($m[1]);
+        }
+
+        if (preg_match('/HSN Code\s*:\s*(?:HSN Code\s*:\s*)?(.+?)(?=\s+(pieces|Total Order Value|Consignee|Model|Category|[0-9]+\s+pieces|$))/isu', $block, $m)) {
+            $details['hsn_code'] = $this->cleanText($m[1]);
+        }
+
+
+        if (preg_match('/Model.*?\s+(\d+)\s*pieces?/isu', $block, $m) || preg_match('/HSN Code.*?\s+(\d+)\s*pieces?/isu', $block, $m) || preg_match('/Catalogue Status.*?\s+(\d+)\s*pieces?/isu', $block, $m)) {
+            $details['quantity'] = (int)$m[1];
+        }
+
+
+        if (preg_match('/\d+\s*pieces\s+([0-9,]+)\s+NA/iu', $block, $m)) {
+            $details['unit_price'] = (int) str_replace(',', '', $m[1]);
+        }
+
+
+        if (preg_match('/Total Order Value\s*\(in INR\)\s*([0-9,]+)/iu', $block, $m)) {
+            $details['total_order_value'] = (int)str_replace(',', '', $m[1]);
         }
 
         return $details;
     }
+
 
 
 
@@ -584,4 +635,10 @@ class PdfModel
 
         return trim($raw);
     }
+
+    public function countFilesWithSection($allData, $sectionKey)
+    {
+        return count(array_filter($allData, fn($d) => !empty($d[$sectionKey])));
+    }
+    
 }

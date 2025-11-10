@@ -8,25 +8,30 @@
                         <i class="material-symbols-outlined">cloud_upload</i> Upload PDF Files
                     </h5>
 
+                    <?php if (isset($dataOptionEnabled) && $dataOptionEnabled === 'off'): ?>
+                        <button type="button" class="btn btn-sm border-orange border shadow-none mb-0 " disabled>
+                            Filter Data
+                        </button>
+                    <?php endif; ?>
+
                     <!-- Checkbox dropdown for selecting data to show and export to Excel -->
-                    <div class="dropdown">
-                        <a class="btn btn-light d-flex align-items-center gap-1 px-2 py-1 shadow-sm hover-lift mb-0"
-                            data-bs-toggle="dropdown" aria-expanded="false" role="button"
-                            style="border-radius: 6px; border: 1px solid #e5e7eb; transition: all 0.2s;">
-                            <i class="material-symbols-outlined text-orange" style="font-size: 18px;">tune</i>
-                            <span class="fw-semibold text-orange" style="font-size: 13px;">Filter Data</span>
-                            <i class="material-symbols-outlined text-orange ms-1" style="font-size: 16px;">expand_more</i>
+                    <div class="dropdown <?= isset($dataOptionEnabled) && $dataOptionEnabled === 'off' ? 'd-none' : '' ?>">
+                        <a class="btn btn-lavender d-flex align-items-center gap-1 px-2 py-1 shadow-none mb-0"
+                            data-bs-toggle="dropdown" aria-expanded="false" role="button">
+                            <i class="material-symbols-outlined text-lavender" style="font-size: 18px;">tune</i>
+                            <span class="fw-semibold text-lavender" style="font-size: 13px;">Filter Data</span>
+                            <i class="material-symbols-outlined text-lavender ms-1" style="font-size: 16px;">expand_more</i>
                         </a>
 
-                        <div class="dropdown-menu dropdown-menu-end p-2 border-0 shadow-lg"
-                            style="min-width: 240px; border-radius: 10px; margin-top: 6px;">
+                        <div class="dropdown-menu dropdown-menu-end p-2 border-0 shadow-lg" id="filterDropdown"
+                            style="min-width: 240px; border-radius: 10px; margin-top: 3px; ">
 
                             <!-- Header -->
                             <div class="mb-2 border-bottom gap-2 d-flex align-items-center ">
                                 <div class="form-check m-0 ps-1 p-0">
                                     <input class="form-check-input" id="selectAllData"
                                         type="checkbox"
-                                        style="width: 18px; height: 18px;">
+                                        style="width: 20px; height: 20px;">
                                 </div>
 
                                 <div class="d-flex align-items-start flex-column gap-0">
@@ -43,18 +48,9 @@
                             <div class="filter-options">
 
                                 <?php
-                                // Icon mapping
-                                $iconMap = [
-                                    'seller' => 'store',
-                                    'service' => 'support_agent',
-                                    'contract' => 'description',
-                                    'raw_text' => 'text_snippet',
-                                    'buyer' => 'badge',
-                                    'consignee' => 'local_shipping',
-                                    'organisation' => 'apartment',
-                                    'financial' => 'payments',
-                                    'paying' => 'account_balance',
-                                ];
+                                $model = new PdfModel();
+                                $iconMap = $model->getIconMap();
+                                $sectionList = $model->getAvailableSections();
 
                                 foreach ($sectionList as $key => $label):
 
@@ -83,54 +79,16 @@
                                                 type="checkbox"
                                                 value="<?= $key ?>"
                                                 <?= $disabled ?>
-                                                style="width: 16px; height: 16px;">
+                                                style="width: 20px; height: 20px;">
                                         </div>
                                     </label>
-
                                 <?php endforeach; ?>
-
                             </div>
-
                         </div>
-
                     </div>
-
-                    <style>
-                        .hover-lift:hover {
-                            transform: translateY(-1px);
-                            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1) !important;
-                        }
-
-                        .form-check-input:checked {
-                            background-color: #3b82f6;
-                            border-color: #3b82f6;
-                        }
-
-                        .form-check-input:focus {
-                            border-color: #3b82f6;
-                            box-shadow: 0 0 0 0.15rem rgba(59, 130, 246, 0.25);
-                        }
-
-                        .dropdown-menu {
-                            animation: slideDown 0.2s ease-out;
-                        }
-
-                        @keyframes slideDown {
-                            from {
-                                opacity: 0;
-                                transform: translateY(-8px);
-                            }
-
-                            to {
-                                opacity: 1;
-                                transform: translateY(0);
-                            }
-                        }
-                    </style>
-
                 </div>
 
-                <div class="card-body p-4">
+                <div class="card-body p-3">
                     <form id="uploadForm" action="/pdf/upload" method="post" enctype="multipart/form-data" class="row g-4">
                         <!-- <form class="row g-4" id="uploadForm" onsubmit="return false;"> -->
                         <div class="col-lg-8 col-md-7">
@@ -146,6 +104,10 @@
 
                         <div class="col-lg-4 col-md-5">
                             <div class="info-box mb-2">
+                                <h6 class="info-box-title d-flex align-items-center gap-1">
+                                    <i class="material-symbols-outlined">info</i>
+                                    Features
+                                </h6>
                                 <span class="info-box-icon">✓</span> <strong>Supports multiple PDF uploads</strong><br>
                                 <span class="info-box-icon">✓</span> Automatically extracts data<br>
                                 <span class="info-box-icon">✓</span> Export organized Excel sheets
@@ -161,18 +123,53 @@
 
                 <hr class="horizontal dark my-2">
 
-                <div class="card-body p-4 mt-0">
-                    <h6 class="fw-bold text-purple d-flex align-items-center gap-1">
-                        <i class="material-symbols-outlined text-orange" style="vertical-align: middle;">info</i>
-                        How It Works
-                    </h6>
-                    <ol class="ps-3 mb-0" style="line-height: 1.8;">
-                        <li><strong>Upload:</strong> Select one or more PDF files.</li>
-                        <li><strong>Extract:</strong> The system extracts all details automatically.</li>
-                        <li><strong>Review:</strong> View data in organized, readable tables.</li>
-                        <li><strong>Download:</strong> Export to Excel spreadsheets instantly.</li>
-                    </ol>
+                <div class="card-body p-3 mt-0">
+                    <div class="row g-3">
+
+                        <!-- ✅ Left Column: How It Works -->
+                        <div class="col-md-6">
+                            <div class="p-3 rounded-3" style="background: #fcf6b8ff; border-left: 3px solid #f59e0b;">
+                                <h6 class="fw-bold text-purple d-flex align-items-center gap-1">
+                                    <i class="material-symbols-outlined text-orange" style="vertical-align: middle;">follow_the_signs</i>
+                                    How It Works
+                                </h6>
+
+                                <ol class="ps-3 mb-0" style="line-height: 1.8; font-size: 13px; color: #374151;">
+                                    <li><strong>Upload:</strong> Select one or more PDF files.</li>
+                                    <li><strong>Extract:</strong> The system extracts all details automatically.</li>
+                                    <li><strong>Review:</strong> View data in organized, readable tables.</li>
+                                    <li><strong>Download:</strong> Export to Excel spreadsheets instantly.</li>
+                                </ol>
+                            </div>
+
+                        </div>
+
+                        <!-- ✅ Right Column: Filter Instructions -->
+                        <div class="col-md-6">
+                            <div class="p-3 rounded-3 h-100" style="background: #d9e8f7ff; border-left: 4px solid #6d28d9;">
+                                <h6 class="fw-bold text-purple mb-1 d-flex align-items-center gap-1" style="font-size: 14px;">
+                                    <i class="material-symbols-outlined text-purple" style="font-size:18px;">tune</i>
+                                    Filter Data Instructions <?= isset($dataOptionEnabled) && $dataOptionEnabled === 'off' ? '(Coming Soon)' : '' ?>
+                                </h6>
+                                <?php if (isset($dataOptionEnabled) && $dataOptionEnabled === 'on'): ?>
+                                    <ol class="mb-0 ps-3" style="font-size: 13px; line-height: 1.6;">
+                                        <li>Use the <strong>Filter Data</strong> button to choose which sections of extracted data are displayed.</li>
+                                        <li>Your filter selections also apply when exporting to Excel.</li>
+                                        <li><strong>Seller</strong> and <strong>Service Provider</strong> sections are always included.</li>
+                                        <li>Use <strong>Select All</strong> to enable every data section instantly.</li>
+                                    </ol>
+                                <?php else: ?>
+                                    <p class="text-muted ps-1 mb-0" style="font-size: 12px;">
+                                        This feature is coming soon.
+                                    </p>
+                                <?php endif; ?>
+                            </div>
+                        </div>
+
+                    </div>
+
                 </div>
+
             </div>
         </div>
 
@@ -197,7 +194,7 @@
                     </div>
                 </div>
             </div>
-            <div class="card border-0 shadow-sm mt-3 border-radius-lg d-none" id="duplicateSummaryCard" style="min-height: 245px; max-height: 242px;">
+            <div class="card border-0 shadow-sm mt-3 border-radius-lg d-none" id="duplicateSummaryCard" style="min-height: 242px; max-height: 242px;">
                 <div class="card-header py-2" style="background: #d6a4ffff;">
                     <h6 class="fw-bold text-white d-flex align-items-center justify-content-between mb-0">
                         <div class="d-flex align-items-center gap-1">

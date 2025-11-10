@@ -25,6 +25,9 @@ trait Controller
         $settingsModel = new Setting();
         $headlineStatus = $settingsModel->first(['key' => 'headline_status']);
 
+        $settingsStatus = $settingsModel->first(['key' => 'data_option']);
+        $data['dataOptionEnabled'] = $settingsStatus['value'] ?? 'on';
+
         // Default = on
         $data['headlineEnabled'] = $headlineStatus['value'] ?? 'on';
 

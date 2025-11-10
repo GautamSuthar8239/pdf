@@ -1,7 +1,15 @@
 .btn-outline-lavender {
   border: 1px solid #dcdcf8 !important;
   color: #5850b0 !important;
-  background: transparent !important;
+  background: #fff !important;
+  transition: 0.2s ease-in-out;
+}
+
+
+.btn-lavender {
+  border: 1px solid #d3d3fb !important;
+  color: #5850b0 !important;
+  background: #c3c3f5 !important;
   transition: 0.2s ease-in-out;
 }
 
@@ -13,6 +21,15 @@
 
 .border-lavender {
   border: 1px solid #dcdcf8 !important;
+}
+
+.text-lavender-sm {
+  font-size: 12px !important;
+  color: #dcdcf8 !important;
+}
+
+.text-lavender {
+  color: #5850b0 !important;
 }
 
 .navbar-main {
@@ -29,14 +46,14 @@
 }
 
 .animated-banner {
-  width: 85%;
+  width: 100%;
+  flex: 1;
   overflow: hidden;
   position: relative;
   height: 40px;
   display: flex;
   align-items: center;
   justify-content: center;
-  border-radius: 10px;
 }
 
 @media (max-width: 768px) {
@@ -44,8 +61,9 @@
     font-size: 13px !important;
   }
 }
+
 #bannerText {
-  font-size: 18px;
+  font-size: 16px;
   font-weight: 600;
   color: #6c63ff;
   white-space: nowrap;
@@ -83,6 +101,22 @@
 #uploadCol {
   user-select: none;
   -webkit-user-select: none;
+}
+
+#filterDropdown {
+  animation: slideDown 0.2s ease-out;
+}
+
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-8px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 /* Smooth slide in from top middle */

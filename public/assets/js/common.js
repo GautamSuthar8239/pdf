@@ -27,6 +27,15 @@ const CommonCheckboxUtils = {
             location.href = url;
         }, timeout);
     },
+    // ✅ NEW METHOD: Build complete filter map {key: 1|0}
+    getFilterMap: (selector = '.data-filter') => {
+        let map = {};
+        $(selector).each(function () {
+            const key = $(this).val();
+            map[key] = $(this).is(":checked") ? 1 : 0;
+        });
+        return map;
+    },
 
     // robust init
     init: function (selectAllSelector, itemSelector, onChangeCallback = null) {
@@ -272,7 +281,7 @@ $(document).ready(function () {
             $submitBtn.prop('disabled', false).html(`
                 <i class="material-symbols-outlined" style="vertical-align: middle; font-size: 18px;">send</i>Fetch & View Data
                 `);
-            showTopAlert("PDF data extracted successfully.", "success");
+            showTopAlert("PDF data extracted successfully.", "success", false, null, 800);
         } catch (error) {
             console.error('PDF extraction failed:', error);
             showTopAlert("Failed to extract PDF data. Please try again.", "error");
@@ -314,7 +323,7 @@ $(document).ready(function () {
         form.action = '/pdf/upload';
 
         // Add selected filters
-        const selectedFilters = CommonCheckboxUtils.getSelected($('.data-filter:not(:disabled)'));
+        const selectedFilters = CommonCheckboxUtils.getFilterMap('.data-filter');
         const filterInput = document.createElement('input');
         filterInput.type = 'hidden';
         filterInput.name = 'filters';
@@ -364,8 +373,13 @@ $(document).ready(function () {
     function updateToggleVisibility() {
         let activeTab = $("#resultTabs .nav-link.active").attr("data-bs-target");
 
-        // Hide all badges first
-        $("#duplicatesBadge, #sellerBadge, #serviceProviderBadge, #detailsToggleBtns, #combinedBadge").addClass("d-none");
+        // Hide all fixed badges
+        $("#duplicatesBadge, #sellerBadge, #serviceProviderBadge, #combinedBadge, #detailsToggleBtns").addClass("d-none");
+
+        // Hide all dynamic badges first
+        $("[id$='Badge']").addClass("d-none");
+
+        if (!activeTab) return;
 
         switch (activeTab) {
             case "#duplicates-tab":
@@ -375,6 +389,7 @@ $(document).ready(function () {
             case "#seller":
                 $("#sellerBadge").removeClass("d-none");
                 break;
+
             case "#combined":
                 $("#combinedBadge").removeClass("d-none");
                 break;
@@ -387,17 +402,38 @@ $(document).ready(function () {
                 $("#combinedBadge").removeClass("d-none");
                 $("#detailsToggleBtns").removeClass("d-none");
                 break;
+
+            default:
+                // ✅ Handle dynamic detail tabs automatically
+                let tabId = activeTab.replace("#", "");   // e.g. "#contract_details" → "contract_details"
+                $("#" + tabId + "Badge").removeClass("d-none");
         }
     }
-
 
     // Fire once on load
     updateToggleVisibility();
 
-    // Fire whenever a tab changes
-    $('#resultTabs button[data-bs-toggle="tab"]').on('shown.bs.tab', function () {
+    // Fire on tab change
+    $('#resultTabs .nav-link').on('shown.bs.tab', function () {
         updateToggleVisibility();
     });
+
+
+    $(document).on("click", ".settings-menu .list-group-item", function () {
+        // Remove active from all
+        $(".settings-menu .list-group-item").removeClass("active");
+
+        // Add active to clicked
+        $(this).addClass("active");
+
+        // Hide all sections
+        $(".settings-section").addClass("d-none");
+
+        // Show targeted section
+        const target = $(this).data("setting-target");
+        $(target).removeClass("d-none");
+    });
+
 });
 
 

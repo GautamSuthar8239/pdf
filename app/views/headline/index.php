@@ -1,6 +1,6 @@
 <div class="container-fluid py-3 min-vh-88">
-    <div class="row ">
-        <div class="col-lg-7 mb-sm-3 mb-0">
+    <div class="row g-4 align-items-start justify-content-center pt-1">
+        <div class="col-lg-11 mb-sm-3 mb-0">
             <div class="card">
                 <div class="card-header bg-orange border-radius-lg d-flex align-items-center justify-content-between">
                     <div class="d-flex align-items-center gap-2">
@@ -36,7 +36,7 @@
 
                 </div>
                 <div class="card-body p-1">
-                    <div class="px-0 py-0 scroll-wrapper" id="listContainer" style="max-height: 300px !important;">
+                    <div class="px-0 py-0 scroll-wrapper" id="listContainer" style="max-height: 400px !important;">
                         <?php if (!empty($headlines)) : ?>
                             <?php foreach ($headlines as $headline) : ?>
                                 <div class="card shadow-xs list-card border-radius-sm mb-1">
@@ -123,26 +123,10 @@
                 </div>
             </div>
         </div>
-        <div class="col-lg-5">
-            <!-- to set on or off the headline -->
+        <!-- <div class="col-lg-5">
             <div class="card shadow-xs border-radius-md">
-                <div class="card-header pb-0">
-                    <div class="d-flex justify-content-between">
-                        <h6 class="mb-0">Set Headline</h6>
-                    </div>
-                </div>
-                <div class="card-body">
-                    <div class="form-check form-switch">
-                        <input class="form-check-input"
-                            type="checkbox"
-                            id="setHeadline"
-                            <?= isset($headlineEnabled) && $headlineEnabled === 'on' ? 'checked' : '' ?>>
-
-                        <label class="form-check-label" for="setHeadline">Set Headline</label>
-                    </div>
-                </div>
             </div>
-        </div>
+        </div> -->
     </div>
 </div>
 

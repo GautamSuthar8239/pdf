@@ -110,6 +110,52 @@
                                     </li>
                                 <?php endif; ?>
 
+                                <!-- Details Tabs -->
+                                <?php
+                                $model          = new PdfModel();
+                                $detailSections = $model->getDetailSections();
+                                $filterMap      = $model->filterKeyMap();
+                                $iconMap        = $model->getIconMap();
+
+                                $activeFilters = array_filter($filters ?? [], fn($v) => $v == 1);
+                                ?>
+
+                                <?php foreach ($detailSections as $sectionKey => $label): ?>
+
+                                    <?php
+                                    // Fallback filter key
+                                    $filterKey = $filterMap[$sectionKey] ?? $sectionKey;
+
+                                    // ✅ Only hide tabs IF at least one filter is actually active
+                                    if (!empty($activeFilters)) {
+                                        if (empty($activeFilters[$filterKey])) {
+                                            continue;
+                                        }
+                                    }
+
+                                    // ✅ Skip if no file contains this section
+                                    $hasSection = false;
+                                    foreach ($allData as $one) {
+                                        if (!empty($one[$sectionKey])) {
+                                            $hasSection = true;
+                                            break;
+                                        }
+                                    }
+                                    if (!$hasSection) continue;
+
+                                    $icon = $iconMap[$filterKey] ?? 'info';
+                                    ?>
+
+                                    <li class="nav-item">
+                                        <button class="nav-link d-flex align-item-center gap-2"
+                                            data-bs-toggle="tab"
+                                            data-bs-target="#<?= $sectionKey ?>">
+                                            <i class="material-symbols-outlined"><?= $icon ?></i> <?= $label ?>
+                                        </button>
+                                    </li>
+
+                                <?php endforeach; ?>
+
 
                                 <!-- All Details always visible -->
                                 <li class="nav-item" role="presentation">
@@ -118,10 +164,9 @@
                                         <i class="material-symbols-outlined mb-0">list</i> All Details
                                     </button>
                                 </li>
-
                             </ul>
 
-                            <div class="d-flex gap-2 align-items-center justify-content-between mb-sm-2 mb-0">
+                            <div class="d-flex gap-2 align-items-center justify-content-between  my-md-1 mt-0 mb-0">
                                 <div id="duplicatesBadge" class="d-flex justify-content-center align-items-center d-none mb-0">
                                     <span class="badge bg-danger-subtle text-danger px-2 py-2">
                                         <?= count($duplicates) ?> File(s)
@@ -149,6 +194,17 @@
                                     <span class="text-warning ms-2 mb-0 pb-0">|</span>
                                 </div>
 
+                                <?php foreach ($detailSections as $sectionKey => $label): ?>
+                                    <div id="<?= $sectionKey ?>Badge"
+                                        class="d-flex justify-content-center align-items-center d-none mb-0">
+                                        <span class="badge bg-secondary-subtle text-dark px-2 py-2">
+                                            <?= $model->countFilesWithSection($allData, $sectionKey) ?> File(s)
+                                        </span>
+                                        <span class="text-warning ms-2 mb-0 pb-0">|</span>
+                                    </div>
+                                <?php endforeach; ?>
+
+
                                 <div id="detailsToggleBtns" class="d-flex justify-content-center align-items-center d-none mb-0">
                                     <div class="btn-group btn-group-sm border-radius-sm rounded-0 mb-0 pb-0" role="group">
                                         <button type="button" id="freeViewBtn" title="Free View"
@@ -164,22 +220,6 @@
                                     </div>
                                     <span class="text-warning ms-2 mb-0 pb-0">|</span>
                                 </div>
-                                <!-- <div class="stat-item text-center">
-                                    <div class="stat-number">
-                                        <?php
-                                        $totalFiles = array_merge($allData, $duplicates);
-                                        count($totalFiles) > 0 ? print(count($totalFiles)) : print(0);
-                                        ?>
-                                    </div>
-                                    <div class="stat-label">Files</div>
-                                </div>
-                                <span class="text-warning">|</span>
-                                <div class="stat-item text-center">
-                                    <div class="stat-number">
-                                        <?= number_format(array_sum(array_map(fn($d) => strlen($d['raw_text']), $totalFiles))); ?>
-                                    </div>
-                                    <div class="stat-label">Characters</div>
-                                </div> -->
                             </div>
                         </div>
 
@@ -366,6 +406,94 @@
                                     </div>
                                 </div>
                             <?php endif; ?>
+
+                            <?php
+                            function renderDetailTable($sectionKey, $label, $allData)
+                            {
+                                $rows = [];
+
+                                foreach ($allData as $data) {
+                                    if (!empty($data[$sectionKey])) {
+                                        $rows[] = [
+                                            'file_name' => basename($data['base_name']),
+                                            'values'    => $data[$sectionKey]
+                                        ];
+                                    }
+                                }
+
+                                if (empty($rows)) return ''; // nothing to show
+
+                                // Extract headers (keys inside section)
+                                $headers = array_keys($rows[0]['values']);
+
+                                ob_start(); ?>
+
+                                <div class="tab-pane fade detail-card" id="<?= $sectionKey ?>">
+                                    <div class="table-responsive scroll-wrapper">
+
+                                        <table class="table tablehover align-middle sticky-table">
+                                            <thead class="table-light text-uppercase small">
+                                                <tr>
+                                                    <th class="sticky-col col-1">File Name</th>
+                                                    <?php foreach ($headers as $h): ?>
+                                                        <th><?= esc(str_replace('_', ' ', $h)); ?></th>
+                                                    <?php endforeach; ?>
+                                                </tr>
+                                            </thead>
+
+                                            <tbody>
+                                                <?php foreach ($rows as $row): ?>
+                                                    <tr>
+                                                        <td class="sticky-col col-1 fw-bold text-orange">
+                                                            <?= esc($row['file_name']) ?>
+                                                        </td>
+
+                                                        <?php foreach ($headers as $h): ?>
+                                                            <td><?= esc($row['values'][$h] ?? '---'); ?></td>
+                                                        <?php endforeach; ?>
+                                                    </tr>
+                                                <?php endforeach; ?>
+                                            </tbody>
+
+                                        </table>
+
+                                    </div>
+                                </div>
+
+                            <?php return ob_get_clean();
+                            }
+
+                            $detailSections = (new PdfModel())->getDetailSections();  // full list
+                            $filterMap      = (new PdfModel())->filterKeyMap();       // convert keys
+
+                            foreach ($detailSections as $sectionKey => $label):
+
+                                // Convert extracted key → filter key
+                                $filterKey = $filterMap[$sectionKey] ?? null;
+
+                                // ✅ Show ONLY filtered sections
+                                if (!empty($filters)) {
+                                    if (empty($filters[$filterKey])) {
+                                        continue;   // skip unselected
+                                    }
+                                }
+
+                                // ✅ Check if any file contains this section
+                                $hasSection = false;
+                                foreach ($allData as $one) {
+                                    if (!empty($one[$sectionKey])) {
+                                        $hasSection = true;
+                                        break;
+                                    }
+                                }
+                                if (!$hasSection) continue;
+
+                                // ✅ Render table
+                                echo renderDetailTable($sectionKey, $label, $allData);
+
+                            endforeach;
+                            ?>
+
 
 
                             <!-- All Details -->

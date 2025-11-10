@@ -1,5 +1,7 @@
 $(document).ready(function () {
-
+    // ✅ Prevent multiple initializations
+    if (window.bannerAnimationInitialized) return;
+    window.bannerAnimationInitialized = true;
     // =====================================================
     //  Define ALL FUNCTIONS + VARIABLES (Always Available)
     // =====================================================
@@ -248,7 +250,7 @@ $(document).ready(function () {
     });
 
 
-   
+
 
     CommonCheckboxUtils.init('#selectAllHeadlines', '.headline-checkbox', function ($checkboxes) {
 
@@ -363,11 +365,31 @@ $(document).ready(function () {
                         isAnimating = true;
                     }
                 }
-                CommonCheckboxUtils.reloadPage(1000);
             },
             error: function (xhr, status, error) {
                 console.error("❌ Toggle error:", error);
                 showTopAlert("Error toggling headline." + error, "error");
+            }
+        });
+        CommonCheckboxUtils.reloadPage(1000);
+    });
+    $(document).on("change", "#setDataOption", function () {
+        let status = $(this).is(":checked") ? "on" : "off";
+
+        $.ajax({
+            url: "/setting/toggleDataOption",
+            method: "POST",
+            data: { status: status },
+            dataType: "json",
+            success: function (res) {
+                if (res.success) {
+                    showTopAlert(res.message, "success");
+                }
+                CommonCheckboxUtils.reloadPage(1000);
+            },
+            error: function (xhr, status, error) {
+                console.error("❌ Toggle error:", error);
+                showTopAlert("Error toggling Data Option." + error, "error");
             }
         });
     });

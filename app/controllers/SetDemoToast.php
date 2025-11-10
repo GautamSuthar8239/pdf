@@ -32,6 +32,13 @@ class SetDemoToast
         $referrerPath = ltrim($referrer, '/');
         redirect($referrerPath);
     }
+    public function hello()
+    {
+        $referrer = parse_url($_SERVER['HTTP_REFERER'] ?? '/', PHP_URL_PATH);
+        Flash::set('toast', 'This is News option. <br /> This is ' . $referrer . ' page.', 'info');
+        $referrerPath = ltrim($referrer, '/');
+        redirect($referrerPath);
+    }
 
     public function help()
     {

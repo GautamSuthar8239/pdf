@@ -6,7 +6,16 @@ class SettingController
 
     public function index()
     {
-        $this->view('setting/index');
+        $data = [
+            'title' => 'Settings',
+            'breadcrumb' => ['Settings']
+
+        ];
+
+        $settingsModel = new Setting();
+        $data['settings'] = $settingsModel->findAll() ?? [];
+
+        $this->view('settings/index', $data);
     }
 
     public function toggleHeadline()
@@ -42,6 +51,43 @@ class SettingController
         return $this->respond([
             'success' => true,
             'message' => 'Headline visibility updated.'
+        ], $isAjax);
+    }
+
+    public function toggleDataOption()
+    {
+        $isAjax = $this->isAjaxRequest();
+        $status = $_POST['status'] ?? null;
+
+        if (!in_array($status, ['on', 'off'])) {
+            return $this->respond([
+                'success' => false,
+                'message' => 'Invalid status.'
+            ], $isAjax);
+        }
+
+        $model = new Setting();
+
+        // Update or insert
+        $existing = $model->first(['key' => 'data_option']);
+
+        if ($existing) {
+
+            $model->update($existing['id'], [
+                'value'      => $status,
+                'updated_at' => date('Y-m-d H:i:s')
+            ]);
+        } else {
+            $model->insert([
+                'key'   => 'data_option',
+                'value'      => $status,
+                'created_at' => date('Y-m-d H:i:s')
+            ]);
+        }
+
+        return $this->respond([
+            'success' => true,
+            'message' => 'Data Option visibility updated.'
         ], $isAjax);
     }
 
