@@ -29,6 +29,7 @@ spl_autoload_register(function ($classname) {
 require 'App.php';
 require 'config.php';
 require 'Flash.php';
+require 'SettingCache.php';
 require 'Database.php';
 require 'Model.php';
 require 'functions.php';

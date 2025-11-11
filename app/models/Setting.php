@@ -9,6 +9,7 @@ class Setting
         'id',
         'key',
         'value',
+        'status',
         'updated_at',
         'created_at',
     ];
@@ -17,6 +18,7 @@ class Setting
         'id',
         'key',
         'value',
+        'status',
         'updated_at',
         'created_at',
     ];

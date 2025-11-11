@@ -13,66 +13,274 @@
         margin: 0;
         padding: 0;
         font-family: "Poppins", sans-serif;
-        background: linear-gradient(135deg, #eef2f3, #d9e7ff);
-        height: 100vh;
+        background: linear-gradient(135deg, #d9e7ff, #e3efff, #d4e2ff);
+        background-size: 400% 400%;
+        animation: bgShift 12s ease-in-out infinite;
+        min-height: 100vh;
         display: flex;
         justify-content: center;
         align-items: center;
         text-align: center;
+        overflow: hidden;
+      }
+
+      /* Floating Mini Lotties */
+      .floating-lottie {
+        position: absolute;
+        width: 120px;
+        opacity: 0.65;
+        animation: floatY 6s ease-in-out infinite;
+      }
+
+      .l1 {
+        top: 8%;
+        left: 5%;
+        animation-delay: 0s;
+      }
+      .l2 {
+        bottom: 10%;
+        right: 8%;
+        animation-delay: 1.2s;
+      }
+      .l3 {
+        top: 15%;
+        right: 12%;
+        width: 140px;
+        animation-delay: 0.6s;
       }
 
       .card {
-        background: #fff;
-        padding: 40px;
-        border-radius: 18px;
-        max-width: 450px;
+        background: #ffffff;
+        padding: 45px 40px;
+        border-radius: 22px;
+        max-width: 480px;
         width: 90%;
-        box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
-        animation: fadeIn 0.7s ease-in-out;
+        box-shadow: 0 15px 45px rgba(0, 0, 0, 0.18);
+        animation: popUp 0.8s ease-out, float 4s ease-in-out infinite;
+        position: relative;
+        z-index: 10;
+      }
+
+      .card::before {
+        content: "";
+        position: absolute;
+        inset: -16px;
+        border-radius: 30px;
+        background: radial-gradient(
+          circle,
+          rgba(41, 132, 255, 0.28),
+          transparent
+        );
+        filter: blur(35px);
+        animation: glowPulse 4s ease-in-out infinite;
+        z-index: -1;
       }
 
       h2 {
-        font-size: 26px;
+        font-size: 28px;
+        color: #222;
         margin-top: 10px;
-        margin-bottom: 10px;
-        color: #333;
+        opacity: 0;
+        animation: fadeUp 0.9s ease-out 0.3s forwards;
       }
 
       p {
         color: #555;
         font-size: 16px;
+        opacity: 0;
+        animation: fadeUp 0.9s ease-out 0.45s forwards;
       }
 
-      @keyframes fadeIn {
-        from {
+      /* Progress Bar */
+      .progress-box {
+        margin: 20px auto;
+        width: 75%;
+        background: #e8eeff;
+        border-radius: 30px;
+        overflow: hidden;
+        height: 10px;
+      }
+
+      .progress-bar {
+        height: 100%;
+        width: 0%;
+        background: linear-gradient(90deg, #408dff, #005ff9);
+        animation: progressFill 4s ease forwards;
+      }
+
+      /* Footer Icons */
+      .info-icons {
+        margin-top: 30px;
+        display: flex;
+        justify-content: center;
+        gap: 40px;
+        opacity: 0;
+        animation: fadeUp 0.9s ease-out 0.6s forwards;
+      }
+
+      .icon-box {
+        width: 60px;
+        height: 60px;
+      }
+
+      /* Animations */
+      @keyframes popUp {
+        0% {
           opacity: 0;
-          transform: translateY(20px);
+          transform: scale(0.85) translateY(40px);
         }
-        to {
+        100% {
+          opacity: 1;
+          transform: scale(1) translateY(0);
+        }
+      }
+
+      @keyframes float {
+        0%,
+        100% {
+          transform: translateY(0);
+        }
+        50% {
+          transform: translateY(-10px);
+        }
+      }
+
+      @keyframes floatY {
+        0%,
+        100% {
+          transform: translateY(0);
+        }
+        50% {
+          transform: translateY(-25px);
+        }
+      }
+
+      @keyframes fadeUp {
+        0% {
+          opacity: 0;
+          transform: translateY(25px);
+        }
+        100% {
           opacity: 1;
           transform: translateY(0);
+        }
+      }
+
+      @keyframes progressFill {
+        0% {
+          width: 0%;
+        }
+        100% {
+          width: 80%;
+        }
+      }
+
+      @keyframes bgShift {
+        0% {
+          background-position: 0% 0%;
+        }
+        50% {
+          background-position: 100% 100%;
+        }
+        100% {
+          background-position: 0% 0%;
+        }
+      }
+
+      @keyframes glowPulse {
+        0%,
+        100% {
+          opacity: 0.45;
+        }
+        50% {
+          opacity: 0.85;
         }
       }
     </style>
   </head>
   <body>
+    <!-- Floating Lotties -->
+    <lottie-player
+      class="floating-lottie l1"
+      src="https://assets7.lottiefiles.com/packages/lf20_gjmecwii.json"
+      background="transparent"
+      speed="1"
+      loop
+      autoplay
+    >
+    </lottie-player>
+
+    <lottie-player
+      class="floating-lottie l2"
+      src="https://assets7.lottiefiles.com/packages/lf20_mkcnk0b2.json"
+      background="transparent"
+      speed="1"
+      loop
+      autoplay
+    >
+    </lottie-player>
+
+    <lottie-player
+      class="floating-lottie l3"
+      src="https://assets7.lottiefiles.com/packages/lf20_7bd1kz.json"
+      background="transparent"
+      speed="1"
+      loop
+      autoplay
+    >
+    </lottie-player>
+
+    <!-- Main Card -->
     <div class="card">
-      <!-- ✅ Lottie Animation -->
       <lottie-player
         src="https://assets7.lottiefiles.com/packages/lf20_jtbfg2nb.json"
         background="transparent"
         speed="1"
-        style="width: 220px; height: 220px; margin: auto"
+        style="width: 240px; height: 240px; margin: auto"
         loop
         autoplay
       >
       </lottie-player>
 
-      <h2>Site Under Maintenance</h2>
+      <h2>We’ll Be Back Soon</h2>
       <p>
-        We are upgrading our system to serve you better.<br />
-        Please check back again in a little while.
+        We’re upgrading our system to serve you better.<br />Please check back
+        shortly.
       </p>
+
+      <div class="progress-box">
+        <div class="progress-bar"></div>
+      </div>
+
+      <!-- Footer Icons -->
+      <div class="info-icons">
+        <lottie-player
+          class="icon-box"
+          src="https://assets7.lottiefiles.com/packages/lf20_qwlmsnib.json"
+          speed="1"
+          loop
+          autoplay
+        >
+        </lottie-player>
+
+        <lottie-player
+          class="icon-box"
+          src="https://assets7.lottiefiles.com/packages/lf20_CTaizi.json"
+          speed="1"
+          loop
+          autoplay
+        >
+        </lottie-player>
+
+        <lottie-player
+          class="icon-box"
+          src="https://assets7.lottiefiles.com/packages/lf20_8bzgahzj.json"
+          speed="1"
+          loop
+          autoplay
+        >
+        </lottie-player>
+      </div>
     </div>
   </body>
 </html>

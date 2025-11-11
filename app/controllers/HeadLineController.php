@@ -12,7 +12,7 @@ class HeadlineController
             'breadcrumb' => ['Home / Headline'],
         ];
 
-        $headlineModel = new HeadLine();
+        $headlineModel = new Headline();
 
         $headlines = $headlineModel->findAll();
 
@@ -25,7 +25,7 @@ class HeadlineController
     {
         header('Content-Type: application/json');
 
-        $model = new HeadLine();
+        $model = new Headline();
         $rows = $model->where(['status' => 'active']);
 
         $messages = [];
@@ -60,7 +60,7 @@ class HeadlineController
         $description = trim($_POST['headlineDescription'] ?? '');
         $status      = trim($_POST['headlineStatus'] ?? 'active');
 
-        $model = new HeadLine();
+        $model = new Headline();
         $count = 0;
 
         foreach ($headlines as $headlineText) {
@@ -105,7 +105,7 @@ class HeadlineController
             'status'      => $status
         ];
 
-        $model = new HeadLine();
+        $model = new Headline();
         $old = $model->first(['id' => $id]);
 
         if (!$old) {
@@ -127,6 +127,7 @@ class HeadlineController
                 'message' => 'No changes detected. Try again.',
             ], $isAjax);
         }
+
         $changes['updated_at'] = date('Y-m-d H:i:s');
         if ($model->update($id, $changes)) {
             return $this->respond([
@@ -155,7 +156,7 @@ class HeadlineController
             ], $isAjax);
         }
 
-        $model = new HeadLine();
+        $model = new Headline();
 
         foreach ($ids as $encId) {
             $id = decryptId($encId);
@@ -200,7 +201,7 @@ class HeadlineController
             ], $isAjax);
         }
 
-        $model = new HeadLine();
+        $model = new Headline();
         $count = 0;
 
         foreach ($ids as $encId) {
@@ -226,9 +227,7 @@ class HeadlineController
             && strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) === 'xmlhttprequest';
     }
 
-    /**
-     * 🔧 Helper to send JSON or redirect based on request type
-     */
+
     private function respond(array $response, bool $isAjax, ?string $redirectTo = null)
     {
         if ($isAjax) {
@@ -237,7 +236,6 @@ class HeadlineController
             exit;
         }
 
-        // Default redirect target = current page (no query params)
         if (!$redirectTo) {
             $redirectTo = strtok($_SERVER['REQUEST_URI'], '?');
         }

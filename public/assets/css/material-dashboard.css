@@ -8,9 +8,9 @@
 :root,
 [data-bs-theme="light"] {
   --bs-probid: #ff6b4a;
-   --bs-lavender-mist: #dcdcf8;
-   --bs-lavender-mist-text: #433d8b;  
-   /* --bs-lavender-mist-dark: #c1c1e8;   */
+  --bs-lavender-mist: #dcdcf8;
+  --bs-lavender-mist-text: #433d8b;
+  /* --bs-lavender-mist-dark: #c1c1e8;   */
   --bs-blue: #63b3ed;
   --bs-indigo: #596cff;
   --bs-purple: #280c3f;
@@ -148,7 +148,7 @@
   color-scheme: dark;
   --bs-body-color: #d4d4d4;
   --bs-lavender-mist: #dcdcf8;
-   --bs-lavender-mist-text: #433d8b;  
+  --bs-lavender-mist-text: #433d8b;
   --bs-body-color-rgb: 212, 212, 212;
   --bs-body-bg: #171717;
   --bs-body-bg-rgb: 23, 23, 23;
@@ -3176,7 +3176,9 @@ textarea.form-control-lg {
   background-size: contain;
   border: none;
   print-color-adjust: exact;
-  transition: background-color 0.25s ease, border-color 0.25s ease, background-position 0.15s ease-in-out, opacity 0.15s ease-out, box-shadow 0.15s ease-in-out;
+  transition: background-color 0.25s ease, border-color 0.25s ease,
+    background-position 0.15s ease-in-out, opacity 0.15s ease-out,
+    box-shadow 0.15s ease-in-out;
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -24429,20 +24431,15 @@ body.dark-version {
   margin-left: auto !important;
 }
 
-.form-check:not(.form-switch) .form-check-input[type="checkbox"],
-.form-check:not(.form-switch) .form-check-input[type="radio"] {
-  border: 1px solid rgb(203.5, 203.5, 203.5);
+.form-check:not(.form-switch) .form-check-input[type="checkbox"] {
+  float: initial !important;
+  margin-left: auto !important;
+
+  border: 1px solid rgb(203, 203, 203);
   margin-top: 0.25rem;
   position: relative;
-}
-
-.form-check:not(.form-switch) .form-check-input[type="checkbox"]:checked,
-.form-check:not(.form-switch) .form-check-input[type="radio"]:checked {
-  border-color: #e91e63;
-}
-
-.form-check:not(.form-switch) .form-check-input[type="checkbox"] {
   background-image: none;
+  transition: 0.2s;
 }
 
 .form-check:not(.form-switch) .form-check-input[type="checkbox"]:after {
@@ -24462,41 +24459,60 @@ body.dark-version {
 }
 
 .form-check:not(.form-switch) .form-check-input[type="checkbox"]:checked {
-  background: #e91e63;
+  background-color: #ff7a00;
+  border-color: rgb(203, 203, 203);
 }
 
 .form-check:not(.form-switch) .form-check-input[type="checkbox"]:checked:after {
   opacity: 1;
 }
 
-.form-check:not(.form-switch) .form-check-input[type="radio"] {
-  transition: border 0s;
-  background: transparent;
+.radio-group {
+  display: flex;
+  align-items: center;
+  gap: 10px;
 }
 
-.form-check:not(.form-switch) .form-check-input[type="radio"]:after {
-  transition: opacity 0.25s ease-in-out;
+.form-check:not(.form-switch) .form-check-input[type="radio"] {
+  appearance: none;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  width: 20px;
+  height: 20px;
+  border: 1px solid #ff7a00;
+  border-radius: 50%;
+  background: transparent;
+  cursor: pointer;
+  position: relative;
+  margin: 0;
+  flex-shrink: 0;
+  transition: all 0.2s ease;
+}
+
+/* Inner filled circle */
+.form-check:not(.form-switch) .form-check-input[type="radio"]::after {
   content: "";
   position: absolute;
-  width: 0.8375rem;
-  height: 0.8375rem;
+  width: 10px;
+  height: 10px;
   border-radius: 50%;
-  background-image: linear-gradient(195deg, #ec407a 0%, #d81b60 100%),
-    var(--bs-gradient);
+  background: linear-gradient(195deg, #ff7a00 0%, #e86400 100%);
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%) scale(0);
   opacity: 0;
-  left: 0;
-  right: 0;
-  top: 0;
-  bottom: 0;
-  margin: auto;
+  transition: all 0.2s ease;
 }
 
 .form-check:not(.form-switch) .form-check-input[type="radio"]:checked {
-  padding: 6px;
+  border-color: #ff7a00;
 }
 
 .form-check:not(.form-switch) .form-check-input[type="radio"]:checked:after {
   opacity: 1;
+  transform: translate(-50%, -50%) scale(1);
+
+
 }
 
 .form-check:not(.form-switch) .form-check-input[type="radio"]:active {
@@ -24527,8 +24543,6 @@ body.dark-version {
   background-color: #a3a3a3;
   height: 0.9375rem;
   width: 1.875rem;
-  /* top: -2.5px;
-    left: -5px; */
 }
 
 .form-switch .form-check-input:after {

@@ -14,9 +14,8 @@ function esc($str)
 
 function redirect($path)
 {
-    $root = rtrim(ROOT, '/');      // remove ending slash from ROOT
-    $path = ltrim($path, '/');     // remove starting slash from path
-
+    $root = rtrim(ROOT, '/');
+    $path = ltrim($path, '/');
     header("Location: {$root}/{$path}");
     exit;
 }
@@ -67,8 +66,6 @@ function decryptId(string $code)
     return false; // tampered / invalid
 }
 
-/* ---------- base62 helpers (integer < 2^63 safe on 64-bit PHP) ---------- */
-
 function base62_encode($num): string
 {
     if (!is_int($num) && !is_float($num)) $num = (int)$num;
@@ -100,25 +97,6 @@ function base62_decode(string $str)
     }
     return $num;
 }
-
-
-// function detectChanges($old, $new, $fieldsToCheck = [])
-// {
-//     $changes = [];
-
-//     // If no specific fields are passed, check all keys in $new
-//     if (empty($fieldsToCheck)) {
-//         $fieldsToCheck = array_keys($new);
-//     }
-
-//     foreach ($fieldsToCheck as $field) {
-//         if (isset($new[$field]) && (!isset($old[$field]) || $new[$field] !== $old[$field])) {
-//             $changes[$field] = $new[$field];
-//         }
-//     }
-
-//     return $changes;
-// }
 
 function detectChanges($old, $new, $fieldsToCheck = [])
 {

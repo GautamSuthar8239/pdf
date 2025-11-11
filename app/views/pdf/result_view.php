@@ -32,7 +32,6 @@
                                         <i class="material-symbols-outlined">download</i>
                                     </a>
 
-
                                     <a href="/pdf"
                                         class="btn btn-outline-lavender d-flex align-items-center gap-1 mb-0 py-1 px-3"
                                         title="Back to Upload Page">
@@ -55,7 +54,7 @@
                             <span class="text-white">|</span>
                             <div class="stat-item text-center">
                                 <div class="stat-number">
-                                    <?= number_format(array_sum(array_map(fn($d) => strlen($d['raw_text']), $allFiles))); ?>
+                                    <?= $raw_text ?>
                                 </div>
                                 <div class="stat-label">Characters</div>
                             </div>
@@ -73,18 +72,6 @@
                         <div class="d-flex flex-wrap tabs-scroll-wrapper align-items-center justify-content-between mb-3 border-bottom">
                             <ul class="nav nav-tabs gap-1 border-0"
                                 id="resultTabs" role="tablist">
-                                <style>
-                                    .small-tab {
-                                        font-size: 13px !important;
-                                        padding: 4px 8px 4px 8px !important;
-                                        line-height: 1;
-                                    }
-
-                                    .small-tab i {
-                                        font-size: 16px !important;
-                                    }
-                                </style>
-
                                 <?php if ($hasSeller && $hasService): ?>
                                     <!-- Show Combined only if both present -->
                                     <li class="nav-item" role="presentation">
@@ -146,6 +133,12 @@
                                     $neglectedCount += max(0, count($group['files']) - 1);
                                 }
 
+                                // Count total duplicate files
+                                $totalDuplicateFiles = 0;
+                                foreach ($duplicates as $group) {
+                                    $totalDuplicateFiles += count($group['files']);
+                                }
+
                                 $activeFilters = array_filter($filters ?? [], fn($v) => $v == 1);
                                 ?>
 
@@ -191,20 +184,24 @@
                                 <li class="nav-item" role="presentation">
                                     <button class="nav-link d-flex align-item-center justify-content-between gap-2 mb-0"
                                         data-bs-toggle="tab" data-bs-target="#details" type="button">
-                                        <i class="material-symbols-outlined mb-0 text-lg">list</i>
+                                        <i class="material-symbols-outlined mb-0 text-lg">list_alt_check</i>
                                         <span style="font-size:13px;">All Details</span>
+                                    </button>
+                                </li>
+
+                                <li class="nav-item" role="presentation">
+                                    <button class="nav-link d-flex align-item-center justify-content-between gap-2 mb-0"
+                                        data-bs-toggle="tab" data-bs-target="#allFiles" type="button">
+                                        <i class="material-symbols-outlined mb-0 text-lg">list</i>
+                                        <span style="font-size:13px;">All Files</span>
                                     </button>
                                 </li>
                             </ul>
 
                             <div class="d-flex gap-2 align-items-center justify-content-between  my-md-1 mt-0 mb-0">
                                 <div id="duplicatesBadge" class="d-flex justify-content-center align-items-center mb-0">
-                                    <span class="badge bg-danger-subtle text-danger px-2 py-2">
-                                        <?= $neglectedCount ?> File(s) Ignored
-                                    </span>
-                                    <span class="text-warning mx-2 mb-0 pb-0">|</span>
-                                    <span class="badge bg-danger-subtle text-danger px-2 py-2">
-                                        <?= $duplicateGroupCount ?> Duplicate Groups
+                                    <span class="badge bg-danger-subtle text-danger px-3 py-2 fw-semibold">
+                                        Duplicates: <?= $totalDuplicateFiles ?> files (<?= $duplicateGroupCount ?> groups, <?= $neglectedCount ?> ignored)
                                     </span>
                                     <span class="text-warning ms-2 mb-0 pb-0">|</span>
                                 </div>
@@ -225,6 +222,13 @@
                                 <div id="combinedBadge" class="d-flex justify-content-center align-items-center d-none mb-0">
                                     <span class="badge bg-warning-subtle text-purple px-2 py-2">
                                         <?= count($allData) ?> File(s)
+                                    </span>
+                                    <span class="text-warning ms-2 mb-0 pb-0">|</span>
+                                </div>
+                                <div id="allFilesBadge" class="d-flex justify-content-center align-items-center d-none mb-0">
+
+                                    <span class="badge bg-warning-subtle text-purple px-2 py-2">
+                                        <?= count($allFiles) ?> File(s)
                                     </span>
                                     <span class="text-warning ms-2 mb-0 pb-0">|</span>
                                 </div>
@@ -258,9 +262,28 @@
                             </div>
                         </div>
 
+
+                        <?php
+                        if ($hasSeller && $hasService) {
+                            $defaultActive = 'combined';
+                        } elseif ($hasSeller) {
+                            $defaultActive = 'seller';
+                        } elseif ($hasService) {
+                            $defaultActive = 'service-provider';
+                        } else {
+                            $defaultActive = 'allFiles';
+                        }
+                        ?>
+
                         <div class="tab-content mt-2">
 
-                            <?php if (!empty($duplicates)): ?>
+                            <?php
+
+                            usort($duplicates, function ($a, $b) {
+                                return strtolower($a['company_name'] ?? '') <=> strtolower($b['company_name'] ?? '');
+                            });
+
+                            if (!empty($duplicates)):  ?>
                                 <div class="tab-pane fade detail-card" id="duplicates-tab">
                                     <div class="table-responsive scroll-wrapper">
                                         <table class="table tablehover align-middle sticky-table">
@@ -329,14 +352,6 @@
                                                                 </div>
                                                             <?php endif; ?>
                                                         </td>
-
-
-                                                        <!-- ✅ total count -->
-                                                        <!-- <td class="text-center">
-                                                            <span class="text-warning fw-semibold text-lg text-dark">
-                                                                <?= count($dup['files']) ?>
-                                                            </span>
-                                                        </td> -->
                                                     </tr>
                                                 <?php endforeach; ?>
                                             </tbody>
@@ -346,17 +361,29 @@
                                 </div>
                             <?php endif; ?>
 
+                            <?php
+                            // ✅ Sort by company name (ascending A → Z)
+                            usort($allData, function ($a, $b) {
+                                $nameA = strtolower($a['service_provider_details']['company_name']
+                                    ?? $a['seller_details']['company_name']
+                                    ?? '');
+                                $nameB = strtolower($b['service_provider_details']['company_name']
+                                    ?? $b['seller_details']['company_name']
+                                    ?? '');
 
+                                return $nameA <=> $nameB;  // ascending order
+                            });
+                            ?>
                             <?php if ($hasSeller && $hasService): ?>
                                 <!-- Combined View -->
-                                <div class="tab-pane fade show active detail-card" id="combined">
+                                <div class="tab-pane fade detail-card <?= $defaultActive === 'combined' ? 'show active' : '' ?>" id="combined">
                                     <div class="table-responsive scroll-wrapper">
                                         <table class="table tablehover align-middle">
                                             <thead class="table-light text-uppercase small">
                                                 <tr>
                                                     <th>File Name</th>
                                                     <th>Type</th>
-                                                    <th>Company</th>
+                                                    <th>Company Name</th>
                                                     <th>GeM Seller ID</th>
                                                     <th>Contact</th>
                                                     <th>Email</th>
@@ -368,7 +395,12 @@
                                             <tbody>
                                                 <?php foreach ($allData as $data): ?>
                                                     <tr>
-                                                        <td><?= esc(basename($data['base_name'])); ?></td>
+                                                        <td>
+                                                            <div class="d-flex align-items-center gap-2">
+                                                                <i class="material-symbols-outlined text-muted" style="font-size:18px;">description</i>
+                                                                <?= esc(basename($data['base_name'])); ?>
+                                                            </div>
+                                                        </td>
                                                         <td>
                                                             <?php
                                                             if (!empty($data['service_provider_details']) && !empty($data['seller_details'])) echo 'Both';
@@ -396,15 +428,141 @@
                                 </div>
                             <?php endif; ?>
 
+                            <?php
+                            // ✅ Sort by company name (ascending A → Z)
+                            usort($allFiles, function ($a, $b) {
+                                $nameA = strtolower($a['service_provider_details']['company_name']
+                                    ?? $a['seller_details']['company_name']
+                                    ?? '');
+                                $nameB = strtolower($b['service_provider_details']['company_name']
+                                    ?? $b['seller_details']['company_name']
+                                    ?? '');
+
+                                return $nameA <=> $nameB;  // ascending order
+                            });
+                            $duplicateCompanies = [];
+
+                            foreach ($duplicates as $group) {
+                                $name = strtolower(trim($group['company_name']));
+                                if ($name !== '') {
+                                    $duplicateCompanies[$name] = true;
+                                }
+                            }
+                            ?>
+
+                            <!-- all Files -->
+                            <div class="tab-pane fade detail-card <?= $defaultActive === 'allFiles' ? 'show active' : '' ?>" id="allFiles">
+                                <div class="table-responsive scroll-wrapper">
+                                    <table class="table tablehover align-middle">
+                                        <thead class="table-light text-uppercase small">
+                                            <tr>
+                                                <th>File Name</th>
+                                                <th>Type</th>
+                                                <th>Company Name</th>
+                                                <th>GeM Seller ID</th>
+                                                <th>Contact</th>
+                                                <th>Email</th>
+                                                <th>GSTIN</th>
+                                                <th>Address</th>
+                                                <th>Registration</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            <?php foreach ($allFiles as $data): ?>
+                                                <tr>
+                                                    <td>
+                                                        <div class="d-flex align-items-center gap-2">
+                                                            <i class="material-symbols-outlined text-muted" style="font-size:18px;">description</i>
+                                                            <?= esc(basename($data['base_name'])); ?>
+                                                        </div>
+                                                    </td>
+
+                                                    <td>
+                                                        <?php
+                                                        if (!empty($data['service_provider_details']) && !empty($data['seller_details'])) echo 'Both';
+                                                        elseif (!empty($data['service_provider_details'])) echo 'Service Provider';
+                                                        elseif (!empty($data['seller_details'])) echo 'Seller';
+                                                        else echo '---';
+                                                        ?>
+                                                    </td>
+
+                                                    <!-- <td class="fw-bold text-orange">
+                                                        <?= esc($data['service_provider_details']['company_name']
+                                                            ?? $data['seller_details']['company_name']
+                                                            ?? '---'); ?>
+                                                    </td> -->
+                                                    <?php
+                                                    $company = $data['service_provider_details']['company_name']
+                                                        ?? $data['seller_details']['company_name']
+                                                        ?? '---';
+
+                                                    $key = strtolower(trim($company));
+                                                    $isDuplicate = isset($duplicateCompanies[$key]);
+                                                    ?>
+                                                    <td class="fw-bold <?= $isDuplicate ? ' duplicate-company ' : ' text-orange ' ?>">
+                                                        <!-- <span class="<?= $isDuplicate ? ' duplicate-company ' : ' text-orange ' ?>"> -->
+                                                        <?= esc($company) ?>
+                                                        <!-- </span> -->
+                                                    </td>
+
+
+                                                    <td><?= esc($data['seller_details']['gem_seller_id'] ?? '---'); ?></td>
+
+                                                    <td><?= esc($data['service_provider_details']['contact_number']
+                                                            ?? $data['seller_details']['contact_number']
+                                                            ?? '---'); ?></td>
+
+                                                    <td><?= esc($data['service_provider_details']['email']
+                                                            ?? $data['seller_details']['email']
+                                                            ?? '---'); ?></td>
+
+                                                    <td><?= esc($data['service_provider_details']['gstin']
+                                                            ?? $data['seller_details']['gstin']
+                                                            ?? '---'); ?></td>
+
+                                                    <td><?= esc($data['service_provider_details']['address']
+                                                            ?? $data['seller_details']['address']
+                                                            ?? '---'); ?></td>
+
+                                                    <td class="fw-semibold text-success">
+                                                        <?= esc($data['service_provider_details']['msme_registration']
+                                                            ?? $data['seller_details']['msme_registration']
+                                                            ?? '---'); ?>
+                                                    </td>
+                                                </tr>
+                                            <?php endforeach; ?>
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+
+                            <?php
+                            $serviceData = array_filter($allData, fn($d) => !empty($d['service_provider_details']));
+
+                            usort($serviceData, function ($a, $b) {
+                                $nameA = strtolower($a['service_provider_details']['company_name'] ?? '');
+                                $nameB = strtolower($b['service_provider_details']['company_name'] ?? '');
+                                return $nameA <=> $nameB;
+                            });
+
+                            $sellerData = array_filter($allData, fn($d) => !empty($d['seller_details']));
+
+                            usort($sellerData, function ($a, $b) {
+                                $nameA = strtolower($a['seller_details']['company_name'] ?? '');
+                                $nameB = strtolower($b['seller_details']['company_name'] ?? '');
+                                return $nameA <=> $nameB;
+                            });
+                            ?>
+
                             <?php if ($hasService): ?>
                                 <!-- Service Provider -->
-                                <div class="tab-pane fade <?= (!$hasSeller && !$hasService) ? 'show active' : (!$hasSeller && $hasService ? 'show active' : '') ?> detail-card" id="service-provider">
+                                <div class="tab-pane fade detail-card <?= $defaultActive === 'service-provider' ? 'show active' : '' ?>" id="service-provider">
                                     <div class="table-responsive scroll-wrapper">
                                         <table class="table tablehover align-middle sticky-table">
                                             <thead class="table-light text-uppercase small">
                                                 <tr>
                                                     <!-- <th class="sticky-col col-1">File Name</th> -->
-                                                    <th class="sticky-col col-1">Company</th>
+                                                    <th class="sticky-col col-1">Company Name</th>
                                                     <th>GeM Seller ID</th>
                                                     <th>Contact</th>
                                                     <th>Email</th>
@@ -414,11 +572,16 @@
                                                 </tr>
                                             </thead>
                                             <tbody>
-                                                <?php foreach ($allData as $data): ?>
+                                                <?php foreach ($serviceData as $data): ?>
                                                     <?php if (!empty($data['service_provider_details'])): ?>
                                                         <tr>
                                                             <!-- <td class="sticky-col col-1"><?= esc(basename($data['file_name'])); ?></td> -->
-                                                            <td class="sticky-col col-1 fw-bold text-orange"><?= esc($data['service_provider_details']['company_name'] ?? '---'); ?></td>
+                                                            <td class="sticky-col col-1 fw-bold text-orange">
+                                                                <div class="d-flex align-items-center gap-2">
+                                                                    <i class="material-symbols-outlined text-muted" style="font-size:18px;">business</i>
+                                                                    <?= esc($data['service_provider_details']['company_name'] ?? '---'); ?>
+                                                                </div>
+                                                            </td>
                                                             <td><?= esc($data['service_provider_details']['gem_seller_id'] ?? '---'); ?></td>
                                                             <td><?= esc($data['service_provider_details']['contact_number'] ?? '---'); ?></td>
                                                             <td><?= esc($data['service_provider_details']['email'] ?? '---'); ?></td>
@@ -436,13 +599,13 @@
 
                             <?php if ($hasSeller): ?>
                                 <!-- Seller -->
-                                <div class="tab-pane fade <?= (!$hasService && $hasSeller ? 'show active' : '') ?> detail-card" id="seller">
+                                <div class="tab-pane fade detail-card <?= $defaultActive === 'seller' ? 'show active' : '' ?>" id="seller">
                                     <div class="table-responsive scroll-wrapper">
                                         <table class="table tablehover align-middle sticky-table">
                                             <thead class="table-light text-uppercase small">
                                                 <tr>
                                                     <!-- <th class="sticky-col col-1">File Name</th> -->
-                                                    <th class="sticky-col col-1">Company</th>
+                                                    <th class="sticky-col col-1">Company Name</th>
                                                     <th>GeM Seller ID</th>
                                                     <th>Contact</th>
                                                     <th>Email</th>
@@ -452,12 +615,15 @@
                                                 </tr>
                                             </thead>
                                             <tbody>
-                                                <?php foreach ($allData as $data): ?>
+                                                <?php foreach ($sellerData as $data): ?>
                                                     <?php if (!empty($data['seller_details'])): ?>
                                                         <tr>
                                                             <!-- <td class="sticky-col col-1"><?= esc(basename($data['file_name'])); ?></td> -->
                                                             <td class="sticky-col col-1 fw-bold text-orange">
-                                                                <?= esc($data['seller_details']['company_name'] ?? '---'); ?>
+                                                                <div class="d-flex align-items-center gap-2">
+                                                                    <i class="material-symbols-outlined text-muted" style="font-size:18px;">business</i>
+                                                                    <?= esc($data['seller_details']['company_name'] ?? '---'); ?>
+                                                                </div>
                                                             </td>
                                                             <td><?= esc($data['seller_details']['gem_seller_id'] ?? '---'); ?></td>
                                                             <td><?= esc($data['seller_details']['contact_number'] ?? '---'); ?></td>
@@ -561,10 +727,8 @@
                             endforeach;
                             ?>
 
-
-
                             <!-- All Details -->
-                            <div class="tab-pane fade <?= (!$hasSeller && !$hasService ? 'show active' : '') ?> " id="details">
+                            <div class="tab-pane fade " id="details">
                                 <div id="detailsFreeView">
                                     <?php foreach ($allData as $index => $data): ?>
                                         <div class="card detail-card mb-2 border shadow-sm">
@@ -731,3 +895,11 @@
         </div>
     </div>
 </div>
+<style>
+    .duplicate-company {
+        background: #fadcc5 !important;
+        color: #d35400 !important;
+        padding: 2px 6px;
+        border-radius: 4px;
+    }
+</style>

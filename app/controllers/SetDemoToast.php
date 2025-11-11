@@ -66,4 +66,10 @@ class SetDemoToast
             session_destroy();
         redirect($referrerPath);
     }
+
+    public function home()
+    {
+        echo "Sessions : " . count($_SESSION);
+        show($_SESSION);
+    }
 }

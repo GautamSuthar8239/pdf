@@ -67,36 +67,77 @@ $(document).ready(function () {
     $(document).on('hide.bs.modal', '.modal', function () {
         document.activeElement?.blur();
     });
-    // 🧩 CUSTOM SELECT DROPDOWN
+
     $(document).on("click", ".custom-select__trigger", function (e) {
         e.stopPropagation();
+
         const $select = $(this).closest(".custom-select");
+        const $options = $select.find(".custom-select__options");
+
         $(".custom-select.open").not($select).removeClass("open");
+
         $select.toggleClass("open");
+
+        if ($select.hasClass("open")) {
+            const rect = this.getBoundingClientRect();
+
+            $options.css({
+                position: "fixed",
+                top: rect.bottom + window.scrollY,
+                left: rect.left + window.scrollX,
+                width: rect.width,
+                "z-index": 999999,
+                visibility: "visible",
+                opacity: 1
+            });
+        } else {
+            $options.css({
+                visibility: "hidden",
+                opacity: 0
+            });
+        }
     });
 
     $(document).on("click", ".custom-select__option", function (e) {
         e.stopPropagation();
+
         const $option = $(this);
         const $select = $option.closest(".custom-select");
+
         const text = $.trim($option.text());
         const value = $option.data("value");
 
         $select.find(".custom-select__option").removeClass("selected");
         $option.addClass("selected");
         $select.find(".custom-select__selected").text(text);
+
         $select.removeClass("open");
+        $select.find(".custom-select__options").css({
+            visibility: "hidden",
+            opacity: 0
+        });
 
         $select.trigger("customSelect:change", { value, text, select: $select });
     });
 
     $(document).on("click", function () {
         $(".custom-select.open").removeClass("open");
+        $(".custom-select__options").css({
+            visibility: "hidden",
+            opacity: 0
+        });
     });
 
     $(document).on("keydown", function (e) {
-        if (e.key === "Escape") $(".custom-select.open").removeClass("open");
+        if (e.key === "Escape") {
+            $(".custom-select.open").removeClass("open");
+            $(".custom-select__options").css({
+                visibility: "hidden",
+                opacity: 0
+            });
+        }
     });
+
 
     const $fileInput = $('#pdfFiles');
     const $fileLabel = $('#fileLabel');
@@ -282,7 +323,7 @@ $(document).ready(function () {
         let activeTab = $("#resultTabs .nav-link.active").attr("data-bs-target");
 
         // Hide all fixed badges
-        $("#duplicatesBadge, #sellerBadge, #serviceProviderBadge, #combinedBadge, #detailsToggleBtns").addClass("d-none");
+        $("#duplicatesBadge, #sellerBadge, #serviceProviderBadge, #combinedBadge, #detailsToggleBtns, #allFilesBadge").addClass("d-none");
 
         // Hide all dynamic badges first
         $("[id$='Badge']").addClass("d-none");
@@ -304,6 +345,9 @@ $(document).ready(function () {
 
             case "#service-provider":
                 $("#serviceProviderBadge").removeClass("d-none");
+                break;
+            case "#allFiles":
+                $("#allFilesBadge").removeClass("d-none");
                 break;
 
             case "#details":
@@ -337,6 +381,16 @@ $(document).ready(function () {
         $(target).removeClass("d-none");
     });
 
+
+    $('#resultTabs button[data-bs-toggle="tab"]').each(function () {
+        $(this).on('click', function (e) {
+            e.preventDefault();
+
+            // Use Bootstrap 5's Tab instance
+            const tab = new bootstrap.Tab(this);
+            tab.show();
+        });
+    });
 });
 
 

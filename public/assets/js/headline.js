@@ -320,63 +320,7 @@ $(document).ready(function () {
         });
     });
 
-    $(document).on("change", "#setHeadline", function () {
-        let status = $(this).is(":checked") ? "on" : "off";
-
-        $.ajax({
-            url: "/setting/toggleHeadline",
-            method: "POST",
-            data: { status: status },
-            dataType: "json",
-            success: function (res) {
-                if (res.success) {
-                    showTopAlert(res.message, "success");
-
-                    if (status === "on") {
-                        $(".animated-banner").removeClass("d-none");
-
-                        // restart animation
-                        isAnimating = false;
-                        charIndex = 0;
-                        startAnimation();
-
-                    } else {
-                        $(".animated-banner").addClass("d-none");
-
-                        // stop animation
-                        stopCursor();
-                        $("#bannerText").stop(true, true).text("");
-                        isAnimating = true;
-                    }
-                }
-            },
-            error: function (xhr, status, error) {
-                console.error("❌ Toggle error:", error);
-                showTopAlert("Error toggling headline." + error, "error");
-            }
-        });
-        CommonCheckboxUtils.reloadPage(1000);
-    });
-    $(document).on("change", "#setDataOption", function () {
-        let status = $(this).is(":checked") ? "on" : "off";
-
-        $.ajax({
-            url: "/setting/toggleDataOption",
-            method: "POST",
-            data: { status: status },
-            dataType: "json",
-            success: function (res) {
-                if (res.success) {
-                    showTopAlert(res.message, "success");
-                }
-                CommonCheckboxUtils.reloadPage(1000);
-            },
-            error: function (xhr, status, error) {
-                console.error("❌ Toggle error:", error);
-                showTopAlert("Error toggling Data Option." + error, "error");
-            }
-        });
-    });
+    
 
     $(document).on("click", "#toggleStatusSelected", function () {
 

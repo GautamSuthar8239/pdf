@@ -474,11 +474,11 @@ class PdfModel
 
         $block = $this->cleanBlock($section[1]);
 
-        if (preg_match('/Product Name\s*:\s*(?:Product Name\s*:\s*)?(.+?)(?:\s*(Brand|ांड|ांड|ांड|ांड|ांड|$))/isu', $block, $m)) {
+        if (preg_match('/Product Name\s*:\s*(?:Product Name\s*:\s*)?(.+?)(?:\s*(Brand|ांड|ांड|ांड|ांड|ांड|ांड|~ांड|ांड|$))/isu', $block, $m)) {
             $details['product_name'] = $this->cleanText($m[1]);
         }
 
-        if (preg_match('/Brand\s*:\s*(?:Brand\s*:\s*)?(.+?)(?=\s+(Brand Type|ांड|ांड|ांड|ांड|ांड|$))/isu', $block, $m)) {
+        if (preg_match('/Brand\s*:\s*(?:Brand\s*:\s*)?(.+?)(?=\s+(Brand Type|ांड|ांड|ांड|ांड|ांड|~ांड|ांड|ांड|ांड|ांड|$))/isu', $block, $m)) {
             $details['brand'] = $this->cleanText($m[1]);
         }
 
@@ -493,9 +493,10 @@ class PdfModel
         }
 
 
-        if (preg_match('/Selling As\s*:\s*(?:Selling As\s*:\s*)?(.+?)(?=\s+(Category|ेणी|sेणी|rेणी|wेणी|tेणी|vेणी|$))/isu', $block, $m)) {
+        if (preg_match('/Selling As\s*:\s*(?:Selling As\s*:\s*)?(.+?)(?=\s+(Category|.\x{0947}\x{0923}\x{0940}|\x{0947}\x{0923}\x{0940}|[\x{0900}-\x{097F}]+|$))/isu', $block, $m)) {
             $details['selling_as'] = $this->cleanText($m[1]);
         }
+
 
 
         if (preg_match('/Category Name\s*&\s*Quadrant\s*:\s*(?:Category Name\s*&\s*Quadrant\s*:\s*)?(.+?)()(?=\s+(Model|मॉडल|$))/iu', $block, $m)) {
@@ -505,9 +506,14 @@ class PdfModel
         if (preg_match('/Model\s*:\s*(?:Model\s*:\s*)?(.+?)(?=\s+(HSN Code|एचएसएन|$))/iu', $block, $m)) {
             $details['model'] = $this->cleanText($m[1]);
         }
+        if (preg_match('/HSN\s*(?:Code)?\s*:\s*(.*?)(?=\s+(?:pieces|Total Order Value|Consignee|Model|Category|\d+\s+pieces|$))/isu', $block, $m)) {
+            $value = trim($m[1]);
 
-        if (preg_match('/HSN Code\s*:\s*(?:HSN Code\s*:\s*)?(.+?)(?=\s+(pieces|Total Order Value|Consignee|Model|Category|[0-9]+\s+pieces|$))/isu', $block, $m)) {
-            $details['hsn_code'] = $this->cleanText($m[1]);
+            if ($value === '' || strcasecmp($value, 'NA') === 0 || stripos($value, 'not specified') !== false) {
+                $details['hsn_code'] = null; // or "Not specified"
+            } else {
+                $details['hsn_code'] = $this->cleanText($value);
+            }
         }
 
 

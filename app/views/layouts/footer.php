@@ -1,12 +1,5 @@
 </div>
 </main>
-<?php
-// ✅ Load version (VERSION file in htdocs)
-$version = '0.3.0';
-if (file_exists(__DIR__ . "/VERSION")) {
-    $version = trim(file_get_contents(__DIR__ . "/VERSION"));
-}
-?>
 
 <?php if (!isset($showFooter) || $showFooter): ?>
 
@@ -16,17 +9,15 @@ if (file_exists(__DIR__ . "/VERSION")) {
 
                 <!-- Left Side -->
                 <div class="col-12 col-md-8 my-auto">
-                    <div class="text-center text-md-start text-dark small">
+                    <div class="text-center text-md-start text-dark small user-select-none">
                         © <script>
                             document.write(new Date().getFullYear())
                         </script>
                         <a href="https://probidconsultant.com" class="fw-bold text-dark" target="_blank">
                             Probid Consultancy -
                         </a>
-                        <!-- <span class="text-muted ms-1">v<?= $version ?></span>, -->
-                        Crafted with
-                        <i class="material-symbols-rounded text-danger mb-0" style="font-size:16px;">favorite</i>
-                        for a better web.
+                        Made with <i class="material-symbols-rounded text-danger mb-0" style="font-size:16px;">favorite</i>
+                        to turn ideas into impact.
                     </div>
                 </div>
 
@@ -43,8 +34,8 @@ if (file_exists(__DIR__ . "/VERSION")) {
                                 About Us
                             </a>
                         </li>
-                        <li class="nav-item">
-                            <span class="text-muted text-sm">v<?= $version ?></span>
+                        <li class="nav-item user-select-none">
+                            <span class="text-muted text-sm">v<?= isset($version) && $version ? $version : '?'; ?></span>
                         </li>
                     </ul>
                 </div>
@@ -97,11 +88,9 @@ if (file_exists(__DIR__ . "/VERSION")) {
         <div class="alert-icon-wrapper mb-2 d-flex align-items-center justify-content-center rounded-circle">
             <i id="topAlertIcon" class="material-symbols-rounded text-5xl">info</i>
         </div>
-
         <div id="topAlertMessage" class="fw-semibold fs-6 mb-1 text-center">
             Message goes here.
         </div>
-
         <div id="alertDivider" class="w-100 my-1 border-top border-light opacity-25"></div>
 
         <div id="topAlertActions" class="d-none w-100 mt-1">
@@ -117,7 +106,8 @@ if (file_exists(__DIR__ . "/VERSION")) {
 <script>
     window.GLOBAL_HEADLINES = <?= json_encode($global_headlines ?? []) ?>;
 </script>
-<script defer  src="<?= ROOT; ?>/public/assets/js/headline.js"></script>
+<script defer src="<?= ROOT; ?>/public/assets/js/headline.js"></script>
+<script defer src="<?= ROOT; ?>/public/assets/js/settings.js"></script>
 <script src="<?= ROOT; ?>/public/assets/js/core/popper.min.js"></script>
 <script src="<?= ROOT; ?>/public/assets/js/core/bootstrap.min.js"></script>
 <script src="<?= ROOT; ?>/public/assets/js/plugins/perfect-scrollbar.min.js"></script>

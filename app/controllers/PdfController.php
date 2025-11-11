@@ -13,6 +13,7 @@ class PdfController
     public function index()
     {
         unset($_SESSION['pdf_excel_data']); // Clear previous session data
+        unset($_SESSION['pdf_filters']);
 
         $sectionList = (new PdfModel())->getAvailableSections();
         $data = [
@@ -27,6 +28,7 @@ class PdfController
     public function upload()
     {
         unset($_SESSION['pdf_excel_data']);
+        unset($_SESSION['pdf_filters']);
 
         if (!isset($_POST['result']) || empty($_POST['result'])) {
             Flash::set('toast', 'File upload failed. Please try again.', 'danger');
@@ -37,10 +39,6 @@ class PdfController
         $filters = json_decode($_POST['filters'], true);
 
         $datas = $result['allData'];
-        // $duplicates = $result['duplicates'];
-        // $summary = $result['summary'];
-
-        // show($result);       // Debug
         // show($filters);   // Debug
         // show($datas);        // Debug
         $model = new PdfModel();
@@ -49,33 +47,50 @@ class PdfController
         $unique = [];
         $duplicates = [];
         $allFiles = [];
+        $detailSections = $model->getDetailSections();
+        $filterMap      = $model->filterKeyMap();
+        $activeFilters = array_filter($filters, fn($v) => $v == 1);
 
         foreach ($datas as $item) {
 
             $extracted = $model->extractData($item['raw_text']);
 
-            // store file info inside extracted
+            // ✅ Always required
+            // $mandatorySections = ['seller_details', 'service_provider_details'];
+
+            // ✅ Apply filters only to non-mandatory sections
+            if (!empty($activeFilters)) {
+                foreach ($filterMap as $section => $filterKey) {
+
+                    // skip mandatory sections
+                    // if (in_array($section, $mandatorySections)) {
+                    //     continue;
+                    // }
+
+                    // remove non-selected sections
+                    if (isset($filters[$filterKey]) && $filters[$filterKey] == 0) {
+                        unset($extracted[$section]);
+                    }
+                }
+            }
+
+            // add file details
             $extracted['file_name'] = $item['file_name'];
             $extracted['base_name'] = $item['base_name'];
 
             $allFiles[] = $extracted;
 
-            // ✅ company name
             $company = $extracted['seller_details']['company_name'] ?? $extracted['service_provider_details']['company_name'] ?? '';
 
-            // ✅ contact
             $contact = $extracted['seller_details']['contact_number'] ?? $extracted['service_provider_details']['contact_number'] ?? null;
-            if (!$contact) continue;
+            // if (!$contact) continue;
 
-            // ✅ normalize
             $cleanContact = preg_replace('/\D/', '', $contact);
 
-            // ✅ FIRST TIME → store unique and start duplicates list
             if (!isset($unique[$cleanContact])) {
 
                 $unique[$cleanContact] = $extracted;
 
-                // ✅ duplicates group storing company name also
                 $duplicates[$cleanContact] = [
                     [
                         'file_name'   => $extracted['file_name'],
@@ -85,7 +100,6 @@ class PdfController
                 ];
             } else {
 
-                // ✅ duplicate file → add with file + company
                 $duplicates[$cleanContact][] = [
                     'file_name'   => $extracted['file_name'],
                     'base_name'   => $extracted['base_name'],
@@ -151,14 +165,23 @@ class PdfController
 
         // Save Excel file
         // Store $allData in session for download later
-        $_SESSION['pdf_excel_data'] = $allData;
+        $raw_text_count = array_sum(array_map(fn($d) => strlen($d['raw_text'] ?? ''), $allFiles));
+        $raw_text = number_format($raw_text_count);
+
+        $cleanedData = array_map(function ($d) {
+            unset($d['raw_text']);
+            return $d;
+        }, $allData);
+
+        $_SESSION['pdf_excel_data'] = $cleanedData;
         $_SESSION['pdf_filters'] = $filters;
+
 
         // Render result view
         $data = [
-            'allData' => $allData,
+            'allData' => $cleanedData,
             'duplicates' => $duplicatesClean,
-            // 'summary' => $summary,
+            'raw_text' => $raw_text,
             'allFiles' => $allFiles,
             'filters' => $filters,
             'excel_path' => '/pdf/downloadExcel', // new route for Excel download
@@ -166,7 +189,6 @@ class PdfController
             'breadcrumb' => ['PDF', 'Extracted Data']
         ];
         $this->view('pdf/result_view', $data);
-        // show($data);
     }
 
 

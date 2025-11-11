@@ -81,40 +81,41 @@
          <!-- Navbar Content -->
          <div class="collapse navbar-collapse" id="mainNavbar">
              <ul class="navbar-nav d-flex flex-row align-items-center gap-1 mb-0 navbar-content">
-                 <!-- Right Menu Items (wraps on mobile) -->
                  <ul class="navbar-nav d-flex align-items-md-center gap-2">
                      <!-- Settings -->
-                     <li class="nav-item">
-                         <!-- <a href="/setting" class="nav-link"> -->
-                         <a href="/setDemoToast/setting" class="nav-link">
+                     <!-- <li class="nav-item">
+                         <a href="/setDemoToast/setting" title="Settings" class="nav-link">
                              <i class="material-symbols-rounded">settings</i>
-                             <span class="d-md-none">Settings</span>
+                             <span class="d-sm-none">Settings</span>
                          </a>
-                     </li>
-
-                     <!-- News -->
-                     <li class="nav-item">
-                         <!-- <a href="/headline" class="nav-link"> -->
-                         <a href="/setDemoToast/hello" class="nav-link">
-                             <i class="material-symbols-rounded">newsmode</i>
-                             <span class="d-md-none">Headlines</span>
-                         </a>
-                     </li>
+                     </li> -->
 
                      <!-- Notifications -->
                      <li class="nav-item dropdown">
-                         <a href="#" class="nav-link text-dark p-1 d-flex align-items-center nav-hover mb-0"
-                             data-bs-toggle="dropdown" aria-expanded="false">
+                         <a href="#" class="nav-link text-dark p-1 gap-2  d-flex align-items-center nav-hover mb-0 mt-3 mt-sm-0"
+                             data-bs-toggle="dropdown" title="Notifications" aria-expanded="false">
                              <i class="material-symbols-rounded">notifications</i>
-                             <span class="d-md-none">Notifications</span>
+                             <span class="d-sm-none">Notifications</span>
                          </a>
                          <ul class="dropdown-menu dropdown-menu-end px-1 border-1 shadow border-secondary
-                         z-index-1000 position-absolute bg-white overflow-auto border-lavender" aria-labelledby="dropdownMenuButton">
+                         bg-white overflow-auto border-lavender" aria-labelledby="dropdownMenuButton">
 
                              <li>
-                                 <a href="/setDemoToast/notify" class="dropdown-item border-radius-md d-flex align-items-center gap-2">
+                                 <a href="/setDemoToast/notify" title="Notify" class="dropdown-item border-radius-md d-flex align-items-center gap-2">
                                      <i class="material-symbols-rounded text-orange">pin</i>
-                                     Demo notification
+                                     <span class="">Notify</span>
+                                 </a>
+                             </li>
+                             <li>
+                                 <a href="/setDemoToast/hello" title="News" class="dropdown-item border-radius-md d-flex align-items-center gap-2">
+                                     <i class="material-symbols-rounded text-orange">newsmode</i>
+                                     <span class="">News</span>
+                                 </a>
+                             </li>
+                             <li>
+                                 <a href="/setDemoToast/setting" title="Settings" class="dropdown-item border-radius-md d-flex align-items-center gap-2">
+                                     <i class="material-symbols-rounded text-orange">settings</i>
+                                     <span class="">Settings</span>
                                  </a>
                              </li>
                          </ul>
@@ -123,12 +124,12 @@
                      <!-- User Profile -->
                      <li class="nav-item dropdown">
                          <a href="#" id="dropdownInfoButton" data-bs-toggle="dropdown" aria-expanded="false" role="button"
-                             class="nav-link d-flex align-items-center px-2 py-1 btn-sm rounded-2 border border-orange gap-2 mb-0">
+                             class="nav-link d-flex align-items-center px-2 py-1 btn-sm rounded-2 border border-orange gap-2 mb-0 mt-3 mt-sm-0">
                              <i class="material-symbols-rounded">person</i>
                              Guest
                          </a>
                          <ul class="dropdown-menu dropdown-menu-end px-1 border-1 shadow border-secondary
-                         z-index-1000 position-absolute bg-white overflow-auto border-lavender"
+                          bg-white overflow-auto border-lavender"
                              aria-labelledby="dropdownInfoButton">
                              <li>
                                  <a class="dropdown-item d-flex align-items-center gap-2 border-radius-md" href="/setDemoToast/about">

@@ -1,7 +1,7 @@
 <?php
 
 // ✅ Maintenance mode check (must be FIRST)
-if (!file_exists(__DIR__ . '/maintenance.html')) {
+if (file_exists(__DIR__ . '/maintenance.html')) {
     include __DIR__ . '/maintenance.html';
     exit;
 }
